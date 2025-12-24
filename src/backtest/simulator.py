@@ -1,3 +1,126 @@
+"""Backtest simulator: execute trades based on discrete signals and ATR-based SL/TP.
+
+Assumptions:
+- Input DataFrame must be chronological and contain columns: Open, High, Low, Close, ATR
+- Signals are discrete per bar in column `signal` with values {-1,0,1}
+- Entry is on next bar `Open` after signal (i+1). SL/TP are set relative to entry using ATR at signal bar.
+
+Output: trades DataFrame and equity series.
+"""
+from typing import Tuple
+import pandas as pd
+import numpy as np
+
+
+def simulate_trades(df: pd.DataFrame,
+                    signal_col: str = 'signal',
+                    sl_atr: float = 1.0,
+                    tp_atr: float = 2.0,
+                    risk_per_trade: float = 0.01,
+                    initial_capital: float = 100000.0) -> Tuple[pd.DataFrame, pd.Series]:
+    df = df.copy()
+    df = df.sort_index()
+
+    trades = []
+    equity = initial_capital
+    equity_curve = []
+
+    n = len(df)
+    for i in range(n - 1):
+        signal = df.iloc[i][signal_col] if signal_col in df.columns else 0
+        if signal == 0 or pd.isna(signal):
+            equity_curve.append(equity)
+            continue
+
+        entry_idx = i + 1
+        if entry_idx >= n:
+            equity_curve.append(equity)
+            continue
+
+        entry_price = df.iloc[entry_idx]['Open']
+        atr = df.iloc[i].get('ATR', np.nan)
+        if pd.isna(atr) or atr <= 0:
+            equity_curve.append(equity)
+            continue
+
+        direction = 1 if signal == 1 else -1
+        stop_price = entry_price - direction * sl_atr * atr
+        tp_price = entry_price + direction * tp_atr * atr
+
+        # position sizing (shares/contracts) via risk_per_trade
+        stop_distance = abs(entry_price - stop_price)
+        if stop_distance == 0:
+            equity_curve.append(equity)
+            continue
+
+        risk_amount = equity * risk_per_trade
+        qty = risk_amount / stop_distance
+
+        # walk-forward to find exit
+        exit_price = None
+        exit_index = None
+        exit_reason = None
+
+        for j in range(entry_idx, n):
+            high = df.iloc[j]['High']
+            low = df.iloc[j]['Low']
+
+            if direction == 1:
+                # LONG: TP hit if high >= tp_price; SL hit if low <= stop_price
+                if low <= stop_price:
+                    exit_price = stop_price
+                    exit_index = j
+                    exit_reason = 'SL'
+                    break
+                if high >= tp_price:
+                    exit_price = tp_price
+                    exit_index = j
+                    exit_reason = 'TP'
+                    break
+            else:
+                # SHORT
+                if high >= stop_price:
+                    exit_price = stop_price
+                    exit_index = j
+                    exit_reason = 'SL'
+                    break
+                if low <= tp_price:
+                    exit_price = tp_price
+                    exit_index = j
+                    exit_reason = 'TP'
+                    break
+
+        # if neither hit, exit at last available close
+        if exit_price is None:
+            exit_index = n - 1
+            exit_price = df.iloc[exit_index]['Close']
+            exit_reason = 'TIMEOUT'
+
+        pl = direction * (exit_price - entry_price) * qty
+        pnl_pct = pl / equity
+        equity += pl
+
+        trades.append({
+            'entry_index': df.index[entry_idx],
+            'exit_index': df.index[exit_index],
+            'direction': direction,
+            'entry_price': entry_price,
+            'exit_price': exit_price,
+            'exit_reason': exit_reason,
+            'qty': qty,
+            'pl': pl,
+            'pnl_pct': pnl_pct,
+        })
+
+        equity_curve.append(equity)
+
+    # pad equity_curve to full length
+    while len(equity_curve) < n:
+        equity_curve.append(equity)
+
+    trades_df = pd.DataFrame(trades)
+    equity_ser = pd.Series(equity_curve, index=df.index)
+    return trades_df, equity_ser
 """Backtest simulator placeholder."""
 
 def simulate():
