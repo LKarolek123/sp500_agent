@@ -17,7 +17,11 @@ def simulate_trades(df: pd.DataFrame,
                     sl_atr: float = 1.0,
                     tp_atr: float = 2.0,
                     risk_per_trade: float = 0.01,
-                    initial_capital: float = 100000.0) -> Tuple[pd.DataFrame, pd.Series]:
+                    initial_capital: float = 100000.0,
+                    max_notional_per_trade: float = 0.05,
+                    slippage_pct: float = 0.0005,
+                    commission_per_trade: float = 1.0,
+                    min_qty: int = 1) -> Tuple[pd.DataFrame, pd.Series]:
     df = df.copy()
     df = df.sort_index()
 
@@ -54,7 +58,17 @@ def simulate_trades(df: pd.DataFrame,
             continue
 
         risk_amount = equity * risk_per_trade
-        qty = risk_amount / stop_distance
+        raw_qty = risk_amount / stop_distance
+
+        # cap by max notional per trade to avoid absurd sizes
+        max_notional = equity * max_notional_per_trade
+        if raw_qty * entry_price > max_notional and entry_price > 0:
+            raw_qty = max_notional / entry_price
+
+        qty = int(max(min_qty, int(raw_qty)))
+        if qty <= 0:
+            equity_curve.append(equity)
+            continue
 
         # walk-forward to find exit
         exit_price = None
@@ -96,7 +110,11 @@ def simulate_trades(df: pd.DataFrame,
             exit_price = df.iloc[exit_index]['Close']
             exit_reason = 'TIMEOUT'
 
-        pl = direction * (exit_price - entry_price) * qty
+        # slippage and commission (approximate)
+        slippage_cost = 2 * qty * entry_price * slippage_pct  # entry + exit
+        commission = commission_per_trade
+
+        pl = direction * (exit_price - entry_price) * qty - slippage_cost - commission
         pnl_pct = pl / equity
         equity += pl
 

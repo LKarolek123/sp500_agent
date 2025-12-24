@@ -29,4 +29,17 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
     # simplified structure label: 1 = bullish (HH+HL), -1 = bearish (LH+LL), 0 = neutral
     df['structure'] = structure_state(df)
 
+    # Additional features: slopes and ATR z-score
+    # RSI slope (3-bar difference)
+    df['RSI_slope'] = df['RSI'].diff(3) / 3.0
+
+    # EMA20 slope and EMA20-EMA50 crossover distance
+    df['EMA20_slope'] = df['EMA20'].diff(3) / 3.0
+    df['EMA20_EMA50_diff'] = df['EMA20'] - df['EMA50']
+
+    # ATR z-score relative to 200-bar history
+    atr_mean = df['ATR'].rolling(200).mean()
+    atr_std = df['ATR'].rolling(200).std()
+    df['ATR_zscore'] = (df['ATR'] - atr_mean) / atr_std
+
     return df.dropna()
