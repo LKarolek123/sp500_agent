@@ -30,8 +30,8 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
     df['structure'] = structure_state(df)
 
     # Additional features: slopes and ATR z-score
-    # RSI slope (3-bar difference)
-    df['RSI_slope'] = df['RSI'].diff(3) / 3.0
+    # RSI slope (4-bar difference chosen)
+    df['RSI_slope'] = df['RSI'].diff(4) / 4.0
 
     # EMA20 slope and EMA20-EMA50 crossover distance
     df['EMA20_slope'] = df['EMA20'].diff(3) / 3.0
