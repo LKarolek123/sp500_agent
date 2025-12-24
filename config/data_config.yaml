@@ -1,0 +1,9 @@
+markets:
+  - name: SP500
+    ticker: ^GSPC
+    source: yfinance
+timeframes:
+  core: H4
+  context:
+    - H1
+    - D1

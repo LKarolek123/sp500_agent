@@ -1,0 +1,3 @@
+data_dir: data
+models_dir: models
+logs_dir: logs

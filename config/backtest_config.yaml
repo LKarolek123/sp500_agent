@@ -1,0 +1,5 @@
+risk:
+  rr: 2
+  max_risk_per_trade: 0.01
+  sl_atr_mult: 1
+  tp_atr_mult: 2

@@ -1,0 +1,8 @@
+features:
+  - EMA20
+  - EMA50
+  - EMA200
+  - RSI14
+  - ATR14
+  - trend_strength
+  - volatility_regime
