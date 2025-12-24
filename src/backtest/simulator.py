@@ -21,13 +21,21 @@ def simulate_trades(df: pd.DataFrame,
                     max_notional_per_trade: float = 0.05,
                     slippage_pct: float = 0.0005,
                     commission_per_trade: float = 1.0,
-                    min_qty: int = 1) -> Tuple[pd.DataFrame, pd.Series]:
+                    min_qty: int = 1,
+                    dynamic_notional: bool = False,
+                    base_notional_per_trade: float = 0.05) -> Tuple[pd.DataFrame, pd.Series]:
     df = df.copy()
     df = df.sort_index()
 
     trades = []
     equity = initial_capital
     equity_curve = []
+
+    # prepare reference ATR for dynamic notional scaling
+    if dynamic_notional and 'ATR' in df.columns:
+        atr_ref = float(df['ATR'].median(skipna=True)) if not df['ATR'].dropna().empty else 1.0
+    else:
+        atr_ref = None
 
     n = len(df)
     for i in range(n - 1):
@@ -60,10 +68,19 @@ def simulate_trades(df: pd.DataFrame,
         risk_amount = equity * risk_per_trade
         raw_qty = risk_amount / stop_distance
 
-        # cap by max notional per trade to avoid absurd sizes
-        max_notional = equity * max_notional_per_trade
-        if raw_qty * entry_price > max_notional and entry_price > 0:
-            raw_qty = max_notional / entry_price
+        # determine effective max notional per trade (supports dynamic scaling by ATR)
+        effective_max_notional = equity * max_notional_per_trade
+        if dynamic_notional and atr_ref is not None and atr > 0:
+            # scale base notional inversely with current ATR: when ATR is high, reduce notional
+            scaled = equity * base_notional_per_trade * (atr_ref / float(atr))
+            # clip reasonable bounds
+            min_cap = equity * 0.001
+            max_cap = equity * 0.5
+            scaled = max(min(scaled, max_cap), min_cap)
+            effective_max_notional = min(effective_max_notional, scaled)
+
+        if raw_qty * entry_price > effective_max_notional and entry_price > 0:
+            raw_qty = effective_max_notional / entry_price
 
         qty = int(max(min_qty, int(raw_qty)))
         if qty <= 0:
