@@ -15,7 +15,7 @@ from src.data.pipeline import run as download_run
 from src.features.feature_engine import build_features
 from src.labeling.dataset_builder import create_labels
 from src.models.predict import predict_signals
-from src.backtest.simulator import simulate_trades
+from src.backtest.simulator_core import simulate_trades
 from src.backtest.metrics import compute_basic_stats
 
 
