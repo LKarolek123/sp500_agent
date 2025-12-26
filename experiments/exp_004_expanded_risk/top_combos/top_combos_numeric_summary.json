@@ -1,0 +1,47 @@
+[
+  {
+    "file": "top_combo_1_equity.csv",
+    "start": 10005.187852292198,
+    "end": 406485784.8243474,
+    "total_return_pct": 4062650.153473841,
+    "cagr_pct": 11.546258927543906,
+    "max_drawdown_pct": 0.49489334122347844,
+    "period_years": 97.11978097193703
+  },
+  {
+    "file": "top_combo_2_equity.csv",
+    "start": 10005.187852292198,
+    "end": 406485784.8243474,
+    "total_return_pct": 4062650.153473841,
+    "cagr_pct": 11.546258927543906,
+    "max_drawdown_pct": 0.49489334122347844,
+    "period_years": 97.11978097193703
+  },
+  {
+    "file": "top_combo_3_equity.csv",
+    "start": 10005.187852292198,
+    "end": 406485784.8243474,
+    "total_return_pct": 4062650.153473841,
+    "cagr_pct": 11.546258927543906,
+    "max_drawdown_pct": 0.49489334122347844,
+    "period_years": 97.11978097193703
+  },
+  {
+    "file": "top_combo_4_equity.csv",
+    "start": 10005.187852292198,
+    "end": 385750635.7057955,
+    "total_return_pct": 3855406.177401954,
+    "cagr_pct": 11.486139919463634,
+    "max_drawdown_pct": 0.49607148164714926,
+    "period_years": 97.11978097193703
+  },
+  {
+    "file": "top_combo_5_equity.csv",
+    "start": 10004.796428296226,
+    "end": 255712690.8123277,
+    "total_return_pct": 2555800.988540898,
+    "cagr_pct": 11.015228537468724,
+    "max_drawdown_pct": 0.5076842551437534,
+    "period_years": 97.11978097193703
+  }
+]
