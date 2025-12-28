@@ -15,7 +15,10 @@ def simulate_trades(df: pd.DataFrame,
                     min_qty: int = 1,
                     dynamic_notional: bool = False,
                     base_notional_per_trade: float = 0.05,
-                    dynamic_window: int = 20) -> Tuple[pd.DataFrame, pd.Series]:
+                    dynamic_window: int = 20,
+                    max_qty: int = 100,
+                    min_stop_distance_pct: float = 0.005,
+                    max_notional_absolute: float = 50000.0) -> Tuple[pd.DataFrame, pd.Series]:
     """Simulate trades from discrete signals with ATR-based SL/TP and sizing.
 
     - Entries are on next-bar `Open` after a non-zero `signal` value.
@@ -70,6 +73,11 @@ def simulate_trades(df: pd.DataFrame,
 
         # sizing: risk-based quantity
         stop_distance = abs(entry_price - stop_price)
+        # enforce minimum stop distance as % of entry price
+        min_stop = entry_price * min_stop_distance_pct
+        if stop_distance < min_stop:
+            stop_distance = min_stop
+            stop_price = entry_price - direction * stop_distance
         if stop_distance == 0:
             equity_curve.append(equity)
             continue
@@ -89,8 +97,15 @@ def simulate_trades(df: pd.DataFrame,
         # cap by notional
         if entry_price > 0 and raw_qty * entry_price > effective_max_notional:
             raw_qty = effective_max_notional / entry_price
+        
+        # cap by absolute notional
+        if entry_price > 0 and raw_qty * entry_price > max_notional_absolute:
+            raw_qty = max_notional_absolute / entry_price
 
         qty = int(max(min_qty, int(raw_qty)))
+        # enforce hard max_qty limit
+        if qty > max_qty:
+            qty = max_qty
         if qty <= 0:
             equity_curve.append(equity)
             continue
