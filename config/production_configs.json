@@ -1,0 +1,68 @@
+[
+  {
+    "name": "production_config_1",
+    "risk_per_trade": 0.005,
+    "max_notional_per_trade": 0.02,
+    "slippage_pct": 0.0001,
+    "dynamic_notional": false,
+    "max_qty": 100,
+    "min_stop_distance_pct": 0.005,
+    "max_notional_absolute": 50000.0,
+    "sl_atr": 1.0,
+    "tp_atr": 2.0,
+    "commission_per_trade": 1.0,
+    "initial_capital": 10000.0,
+    "performance": {
+      "final_equity": 302848.0371905543,
+      "net_pnl": 292848.0371905552,
+      "expectancy": 25.867682818704633,
+      "win_rate": 0.9039837470188146,
+      "max_drawdown": -0.0021114963211703737,
+      "total_trades": 11321
+    }
+  },
+  {
+    "name": "production_config_2",
+    "risk_per_trade": 0.01,
+    "max_notional_per_trade": 0.02,
+    "slippage_pct": 0.0001,
+    "dynamic_notional": false,
+    "max_qty": 100,
+    "min_stop_distance_pct": 0.005,
+    "max_notional_absolute": 50000.0,
+    "sl_atr": 1.0,
+    "tp_atr": 2.0,
+    "commission_per_trade": 1.0,
+    "initial_capital": 10000.0,
+    "performance": {
+      "final_equity": 302848.0371905543,
+      "net_pnl": 292848.0371905552,
+      "expectancy": 25.867682818704633,
+      "win_rate": 0.9039837470188146,
+      "max_drawdown": -0.0021114963211703737,
+      "total_trades": 11321
+    }
+  },
+  {
+    "name": "production_config_3",
+    "risk_per_trade": 0.015,
+    "max_notional_per_trade": 0.02,
+    "slippage_pct": 0.0001,
+    "dynamic_notional": false,
+    "max_qty": 100,
+    "min_stop_distance_pct": 0.005,
+    "max_notional_absolute": 50000.0,
+    "sl_atr": 1.0,
+    "tp_atr": 2.0,
+    "commission_per_trade": 1.0,
+    "initial_capital": 10000.0,
+    "performance": {
+      "final_equity": 302848.0371905543,
+      "net_pnl": 292848.0371905552,
+      "expectancy": 25.867682818704633,
+      "win_rate": 0.9039837470188146,
+      "max_drawdown": -0.0021114963211703737,
+      "total_trades": 11321
+    }
+  }
+]
