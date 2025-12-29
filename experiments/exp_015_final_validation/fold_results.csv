@@ -1,2 +1,2 @@
-fold,signals_total,signals_filtered,total_trades,win_rate,net_pnl,expectancy,max_drawdown
-1,756,6,6,0.3333333333333333,29.826618763950634,4.971103127325101,-0.005011001692253968
+fold,signals_total,signals_filtered,total_trades,win_rate,net_pnl,expectancy,max_drawdown,conf_threshold
+1,999,12,12,0.6666666666666666,741.5497067661834,61.79580889718194,-0.010066731837332555,0.09620963037014008
