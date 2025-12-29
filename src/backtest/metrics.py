@@ -27,7 +27,7 @@ def compute_basic_stats(trades_df: pd.DataFrame, equity_series: pd.Series):
     expectancy = win_rate * avg_win + (1 - win_rate) * avg_loss
 
     # drawdown
-    eq = equity_series.fillna(method='ffill').fillna(0)
+    eq = equity_series.ffill().fillna(0)
     peak = eq.cummax()
     dd = (eq - peak) / peak
     max_dd = dd.min() if not dd.empty else 0.0

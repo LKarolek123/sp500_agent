@@ -16,7 +16,7 @@ pivot_total = df.pivot_table(
 print("="*80)
 print("PARAMETER HEATMAP: Total P&L by TP × SL (all 7 subperiods)")
 print("="*80)
-print("\nTP \ SL", end="")
+print("\nTP \\ SL", end="")
 for sl in sorted(df['sl_mult'].unique()):
     print(f"        {sl:.3f}", end="")
 print()
@@ -40,7 +40,7 @@ pivot_wins = df.pivot_table(
 print("\n" + "="*80)
 print("WIN RATE HEATMAP: Profitable Periods / 7 Total")
 print("="*80)
-print("\nTP \ SL", end="")
+print("\nTP \\ SL", end="")
 for sl in sorted(df['sl_mult'].unique()):
     print(f"      {sl:.3f}", end="")
 print()
@@ -85,7 +85,7 @@ for period in sorted(df['period'].unique()):
     )
     
     print(f"\n{period}:")
-    print("TP \ SL", end="")
+    print("TP \\ SL", end="")
     for sl in sorted(period_data['sl_mult'].unique()):
         print(f"     {sl:.3f}", end="")
     print()
