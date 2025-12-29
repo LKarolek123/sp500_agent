@@ -1,0 +1,108 @@
+{
+  "grid_results": [
+    {
+      "tp": 2.0,
+      "sl": 0.75,
+      "total_pnl": -1586.71867867878,
+      "avg_expectancy": -156.50311725480165,
+      "avg_trades": 0.6,
+      "avg_win_rate": 0.0
+    },
+    {
+      "tp": 2.0,
+      "sl": 1.0,
+      "total_pnl": -1800.2900660378646,
+      "avg_expectancy": -177.20400578635133,
+      "avg_trades": 0.6,
+      "avg_win_rate": 0.0
+    },
+    {
+      "tp": 2.0,
+      "sl": 1.25,
+      "total_pnl": -878.1914944648729,
+      "avg_expectancy": -84.33789842469338,
+      "avg_trades": 0.6,
+      "avg_win_rate": 0.1
+    },
+    {
+      "tp": 2.5,
+      "sl": 0.75,
+      "total_pnl": -1586.71867867878,
+      "avg_expectancy": -156.50311725480165,
+      "avg_trades": 0.6,
+      "avg_win_rate": 0.0
+    },
+    {
+      "tp": 2.5,
+      "sl": 1.0,
+      "total_pnl": -1800.2900660378646,
+      "avg_expectancy": -177.20400578635133,
+      "avg_trades": 0.6,
+      "avg_win_rate": 0.0
+    },
+    {
+      "tp": 2.5,
+      "sl": 1.25,
+      "total_pnl": -708.83452163424,
+      "avg_expectancy": -67.40220114163009,
+      "avg_trades": 0.6,
+      "avg_win_rate": 0.1
+    },
+    {
+      "tp": 3.0,
+      "sl": 0.75,
+      "total_pnl": -1586.71867867878,
+      "avg_expectancy": -156.50311725480165,
+      "avg_trades": 0.6,
+      "avg_win_rate": 0.0
+    },
+    {
+      "tp": 3.0,
+      "sl": 1.0,
+      "total_pnl": -1800.2900660378646,
+      "avg_expectancy": -177.20400578635133,
+      "avg_trades": 0.6,
+      "avg_win_rate": 0.0
+    },
+    {
+      "tp": 3.0,
+      "sl": 1.25,
+      "total_pnl": -539.4775488036014,
+      "avg_expectancy": -50.46650385856623,
+      "avg_trades": 0.6,
+      "avg_win_rate": 0.1
+    },
+    {
+      "tp": 3.5,
+      "sl": 0.75,
+      "total_pnl": -1586.71867867878,
+      "avg_expectancy": -156.50311725480165,
+      "avg_trades": 0.6,
+      "avg_win_rate": 0.0
+    },
+    {
+      "tp": 3.5,
+      "sl": 1.0,
+      "total_pnl": -1800.2900660378646,
+      "avg_expectancy": -177.20400578635133,
+      "avg_trades": 0.6,
+      "avg_win_rate": 0.0
+    },
+    {
+      "tp": 3.5,
+      "sl": 1.25,
+      "total_pnl": -370.1205759729685,
+      "avg_expectancy": -33.53080657550292,
+      "avg_trades": 0.6,
+      "avg_win_rate": 0.1
+    }
+  ],
+  "best": {
+    "tp": 3.5,
+    "sl": 1.25,
+    "total_pnl": -370.1205759729685,
+    "avg_expectancy": -33.53080657550292,
+    "avg_trades": 0.6,
+    "avg_win_rate": 0.1
+  }
+}

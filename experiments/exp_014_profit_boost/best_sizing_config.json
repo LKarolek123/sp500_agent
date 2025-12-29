@@ -1,0 +1,10 @@
+{
+  "sizing_method": "fixed",
+  "risk_level": 0.005,
+  "tp_mult": 3.0,
+  "sl_mult": 1.0,
+  "conf_threshold": 0.4,
+  "avg_expectancy": 1.2792053246776964,
+  "total_pnl": 469.6728457301394,
+  "avg_win_rate": 0.27813241136191685
+}
