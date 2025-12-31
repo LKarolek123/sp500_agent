@@ -1,0 +1,9 @@
+{
+  "n_folds": 20,
+  "avg_filtered_signals": 14.85,
+  "avg_total_trades": 14.85,
+  "avg_win_rate": 0.34754365079365074,
+  "avg_expectancy": -1.0417725284389867,
+  "avg_max_drawdown": -0.001991104088111571,
+  "total_pnl": -289.29783468453513
+}

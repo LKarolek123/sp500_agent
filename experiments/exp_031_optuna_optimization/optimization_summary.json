@@ -1,0 +1,14 @@
+{
+  "study_name": "quick_test",
+  "n_trials": 20,
+  "best_value": 0.674585419617315,
+  "optimization_metric": "sharpe",
+  "best_params": {
+    "tp_mult": 5.0,
+    "sl_mult": 1.75,
+    "risk_per_trade": 0.008,
+    "fast_ma": 10,
+    "slow_ma": 100
+  },
+  "timestamp": "2025-12-31T23:05:51.396390"
+}

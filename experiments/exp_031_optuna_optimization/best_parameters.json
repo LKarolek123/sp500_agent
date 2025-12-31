@@ -1,0 +1,21 @@
+{
+  "best_trial_number": 16,
+  "best_value": 0.674585419617315,
+  "best_params": {
+    "tp_mult": 5.0,
+    "sl_mult": 1.75,
+    "risk_per_trade": 0.008,
+    "fast_ma": 10,
+    "slow_ma": 100
+  },
+  "best_metrics": {
+    "final_pnl": 72348.19244867125,
+    "cagr": 2.220793097375884,
+    "sharpe": 0.674585419617315,
+    "win_rate": 0.3239343448960185,
+    "num_trades": 24187,
+    "max_dd": -50.43011662977008
+  },
+  "optimization_metric": "sharpe",
+  "timestamp": "2025-12-31T23:05:51.377659"
+}
