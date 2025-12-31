@@ -61,10 +61,40 @@ Initial Capital:    10,000 PLN
 
 ---
 
+## 📈 Interactive Dashboard
+
+**New in v2.0**: Streamlit-powered web dashboard for interactive strategy analysis
+
+### Quick Start
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run dashboard
+streamlit run app.py
+
+# Open http://localhost:8501 in browser
+```
+
+### Dashboard Features
+
+- 📊 **Performance Overview**: Key metrics, P&L, win rate, drawdown
+- 🔍 **Sensitivity Analysis**: 175 parameter combinations with heatmaps
+- 🚀 **OOS Validation**: Performance across multiple time periods
+- ⚙️ **Strategy Details**: Signal generation, ML filter, risk management
+- 📑 **Documentation**: Quick links to research documents
+
+**📖 Full Dashboard Documentation**: [DASHBOARD_README.md](DASHBOARD_README.md)
+
+---
+
 ## 🏗️ Project Structure
 
 ```
 sp500_agent/
+├── app.py                   # Streamlit dashboard (NEW)
+├── DASHBOARD_README.md      # Dashboard documentation (NEW)
 ├── src/
 │   ├── models/              # Core strategy scripts
 │   │   ├── final_validation.py          # Main validation engine
