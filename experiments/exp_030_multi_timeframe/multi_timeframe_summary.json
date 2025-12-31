@@ -1,0 +1,86 @@
+{
+  "timestamp": "2025-12-31T22:49:48.858114",
+  "parameters": {
+    "tp_mult": 3.5,
+    "sl_mult": 1.0,
+    "risk_per_trade": 0.005,
+    "initial_capital": 10000
+  },
+  "signal_stats": {
+    "majority": {
+      "bullish_signals": 0,
+      "bearish_signals": 0,
+      "total_signals": 0,
+      "bullish_pct": 0.0,
+      "bearish_pct": 0.0
+    },
+    "consensus": {
+      "bullish_signals": 11791,
+      "bearish_signals": 4825,
+      "total_signals": 16616,
+      "bullish_pct": 70.9617236398652,
+      "bearish_pct": 29.03827636013481
+    },
+    "weighted": {
+      "bullish_signals": 13306,
+      "bearish_signals": 7001,
+      "total_signals": 20307,
+      "bullish_pct": 65.52420347663367,
+      "bearish_pct": 34.47579652336633
+    },
+    "strict": {
+      "bullish_signals": 6735,
+      "bearish_signals": 3078,
+      "total_signals": 9813,
+      "bullish_pct": 68.63344542953226,
+      "bearish_pct": 31.36655457046775
+    }
+  },
+  "results": {
+    "baseline": {
+      "final_pnl": -4438.4236392863,
+      "final_equity": 5561.5763607137,
+      "num_trades": 24188,
+      "total_return": -44.384236392863,
+      "cagr": -0.6093611013546552,
+      "sharpe": 0.10221167354980457,
+      "max_dd": -119.49993185221874
+    },
+    "majority": {
+      "final_pnl": 0.0,
+      "final_equity": 10000.0,
+      "num_trades": 0,
+      "total_return": 0.0,
+      "cagr": 0.0,
+      "sharpe": 0.0,
+      "max_dd": 0.0
+    },
+    "consensus": {
+      "final_pnl": 4880.205476084884,
+      "final_equity": 14880.205476084884,
+      "num_trades": 16615,
+      "total_return": 48.80205476084884,
+      "cagr": 0.4149167788050301,
+      "sharpe": 0.10203911697167559,
+      "max_dd": -77.7889091724899
+    },
+    "weighted": {
+      "final_pnl": -2543.4811777887953,
+      "final_equity": 7456.518822211205,
+      "num_trades": 20306,
+      "total_return": -25.434811777887955,
+      "cagr": -0.3052963885394111,
+      "sharpe": 0.13346440825675054,
+      "max_dd": -118.32421819471452
+    },
+    "strict": {
+      "final_pnl": 8395.949208587866,
+      "final_equity": 18395.949208587866,
+      "num_trades": 9813,
+      "total_return": 83.95949208587867,
+      "cagr": 0.6370424068035563,
+      "sharpe": 0.25728541909595165,
+      "max_dd": -25.528765895006657
+    }
+  }
+}
