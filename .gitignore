@@ -1,7 +1,40 @@
+# Python
 .venv/
+venv/
 __pycache__/
-.ipynb_checkpoints/
 *.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data & Models (sensitive/large files)
 data/raw/
-models/
+*.pkl
+*.h5
+*.joblib
+
+# Logs & temp files
 logs/
+*.log
+*.tmp
+*.cache
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
