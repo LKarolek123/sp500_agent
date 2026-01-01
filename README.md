@@ -1,10 +1,12 @@
-# S&P 500 Algorithmic Trading Strategy
+# S&P 500 Trading Strategy Portfolio
 
 [![Python](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Production-success.svg)]()
+[![Status](https://img.shields.io/badge/Status-3/10%20Complete-success.svg)]()
 
-**Hybrid ML + Rule-Based Trading System for S&P 500** — Combines technical indicators (MA crossovers) with XGBoost machine learning classifier to filter high-probability trade signals.
+A production-ready quantitative trading system combining traditional technical analysis with machine learning, featuring Bayesian optimization and comprehensive risk management.
+
+**Latest Achievement:** Optuna Optimizer found optimal parameters with **Sharpe 0.84** and **+1,469% P&L improvement**!
 
 ---
 

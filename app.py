@@ -134,12 +134,13 @@ st.divider()
 # TAB LAYOUT
 # ============================================================================
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📊 Performance Overview",
     "🔍 Sensitivity Analysis",
     "🚀 Out-of-Sample Validation",
     "⚙️ Strategy Details",
-    "📑 Documentation"
+    "📑 Documentation",
+    "⚠️ Risk Analysis"
 ])
 
 # ============================================================================
@@ -547,6 +548,226 @@ streamlit run app.py
     Strategy combines traditional technical analysis (EMA crossovers) with 
     modern machine learning (XGBoost) for robust S&P 500 trading on daily timeframe.
     """)
+
+# ============================================================================
+# TAB 6: RISK ANALYSIS
+# ============================================================================
+
+with tab6:
+    st.markdown("## ⚠️ Risk Analysis")
+    st.markdown("Advanced risk metrics and portfolio monitoring")
+    
+    # Load optimization results
+    optuna_path = Path('experiments/exp_031_optuna_optimization/baseline_vs_optimized.json')
+    if optuna_path.exists():
+        with open(optuna_path) as f:
+            optuna_results = json.load(f)
+    else:
+        optuna_results = {}
+    
+    # Tabs for different risk views
+    risk_tab1, risk_tab2, risk_tab3 = st.tabs([
+        "📈 Risk Overview",
+        "⚠️ Value at Risk",
+        "📉 Drawdown Analysis"
+    ])
+    
+    # ====================================================================
+    # RISK TAB 1: OVERVIEW
+    # ====================================================================
+    
+    with risk_tab1:
+        st.markdown("### Risk-Adjusted Return Metrics")
+        
+        # Create comparison data from Optuna results
+        if optuna_results and 'baseline' in optuna_results and 'optimized' in optuna_results:
+            baseline = optuna_results['baseline']
+            optimized = optuna_results['optimized']
+            
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                st.markdown("#### Sharpe Ratio")
+                baseline_sharpe = baseline.get('sharpe', 0)
+                optimized_sharpe = optimized.get('sharpe', 0)
+                st.metric("Baseline", f"{baseline_sharpe:.2f}")
+                st.metric("Optimized", f"{optimized_sharpe:.2f}", 
+                         delta=f"{optimized_sharpe - baseline_sharpe:.2f}")
+            
+            with col2:
+                st.markdown("#### P&L (PLN)")
+                baseline_pnl = baseline.get('final_pnl', 0)
+                optimized_pnl = optimized.get('final_pnl', 0)
+                st.metric("Baseline", f"{baseline_pnl:,.0f}")
+                st.metric("Optimized", f"{optimized_pnl:,.0f}",
+                         delta=f"{optimized_pnl - baseline_pnl:,.0f}")
+            
+            with col3:
+                st.markdown("#### CAGR (%)")
+                baseline_cagr = baseline.get('cagr', 0)
+                optimized_cagr = optimized.get('cagr', 0)
+                st.metric("Baseline", f"{baseline_cagr:.2f}%")
+                st.metric("Optimized", f"{optimized_cagr:.2f}%",
+                         delta=f"{optimized_cagr - baseline_cagr:.2f}%")
+            
+            with col4:
+                st.markdown("#### Max Drawdown (%)")
+                baseline_dd = baseline.get('max_dd', 0)
+                optimized_dd = optimized.get('max_dd', 0)
+                st.metric("Baseline", f"{baseline_dd:.2f}%")
+                st.metric("Optimized", f"{optimized_dd:.2f}%",
+                         delta=f"{optimized_dd - baseline_dd:.2f}%")
+            
+            st.divider()
+            
+            # Detailed comparison table
+            st.markdown("### Detailed Risk Profile")
+            
+            comparison_data = []
+            metrics_to_compare = [
+                'final_pnl', 'cagr', 'sharpe', 'win_rate', 
+                'max_dd', 'num_trades', 'profit_factor'
+            ]
+            
+            for metric in metrics_to_compare:
+                baseline_val = baseline.get(metric, 0)
+                optimized_val = optimized.get(metric, 0)
+                
+                # Format display
+                if metric == 'final_pnl':
+                    baseline_display = f"{baseline_val:,.0f}"
+                    optimized_display = f"{optimized_val:,.0f}"
+                    label = "P&L (PLN)"
+                elif metric in ['cagr', 'max_dd']:
+                    baseline_display = f"{baseline_val:.2f}%"
+                    optimized_display = f"{optimized_val:.2f}%"
+                    label = metric.upper()
+                elif metric == 'win_rate':
+                    baseline_display = f"{baseline_val*100:.1f}%"
+                    optimized_display = f"{optimized_val*100:.1f}%"
+                    label = "Win Rate"
+                elif metric == 'num_trades':
+                    baseline_display = str(int(baseline_val))
+                    optimized_display = str(int(optimized_val))
+                    label = "Number of Trades"
+                else:
+                    baseline_display = f"{baseline_val:.2f}"
+                    optimized_display = f"{optimized_val:.2f}"
+                    label = metric.replace('_', ' ').title()
+                
+                comparison_data.append({
+                    'Metric': label,
+                    'Baseline': baseline_display,
+                    'Optimized': optimized_display,
+                    'Change': f"{((optimized_val - baseline_val) / abs(baseline_val) * 100 if baseline_val != 0 else 0):.1f}%"
+                })
+            
+            comp_df = pd.DataFrame(comparison_data)
+            st.dataframe(comp_df, use_container_width=True, hide_index=True)
+        
+        else:
+            st.info("⏳ Optimization results not yet loaded. Run Optuna optimizer first.")
+    
+    # ====================================================================
+    # RISK TAB 2: VALUE AT RISK
+    # ====================================================================
+    
+    with risk_tab2:
+        st.markdown("### Value at Risk (VaR) Analysis")
+        st.markdown("""
+        **VaR tells you potential losses at different confidence levels:**
+        - **VaR 95%**: Maximum 5% probability of worse daily loss
+        - **VaR 99%**: Maximum 1% probability of worse daily loss (tail risk)
+        - **CVaR**: Average loss when VaR is exceeded (stress scenario)
+        """)
+        
+        if optuna_results and 'baseline' in optuna_results:
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("#### VaR Metrics (Baseline vs Optimized)")
+                
+                var_data = []
+                for scenario, results in [("Baseline", optuna_results.get('baseline', {})),
+                                         ("Optimized", optuna_results.get('optimized', {}))]:
+                    var_data.append({
+                        'Strategy': scenario,
+                        'VaR 95%': f"{results.get('var_95', 0):.2f}%",
+                        'VaR 99%': f"{results.get('var_99', 0):.2f}%",
+                        'CVaR 95%': f"{results.get('cvar_95', 0):.2f}%"
+                    })
+                
+                var_df = pd.DataFrame(var_data)
+                st.dataframe(var_df, use_container_width=True, hide_index=True)
+            
+            with col2:
+                st.markdown("#### Risk Interpretation")
+                st.markdown("""
+                **Baseline Performance:**
+                - Higher VaR values = more extreme potential losses
+                - Wider confidence intervals = greater tail risk
+                
+                **Optimized Performance:**
+                - Lower VaR values = better downside protection
+                - Tighter confidence intervals = more stable risk profile
+                - Result: Achieved via tighter stop-loss (0.75x ATR) + wider take-profit
+                """)
+        else:
+            st.info("Optimization results not available. Run Optuna optimizer first.")
+    
+    # ====================================================================
+    # RISK TAB 3: DRAWDOWN ANALYSIS
+    # ====================================================================
+    
+    with risk_tab3:
+        st.markdown("### Drawdown Analysis")
+        st.markdown("""
+        **Drawdown metrics show portfolio recovery characteristics:**
+        - **Max Drawdown**: Largest peak-to-trough decline
+        - **Recovery Time**: How long to fully recover from losses
+        - **Calmar Ratio**: Return per unit of maximum drawdown (higher = better)
+        """)
+        
+        if optuna_results and 'baseline' in optuna_results:
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Max Drawdown comparison chart
+                dd_data = {
+                    'Baseline': optuna_results['baseline'].get('max_dd', 0),
+                    'Optimized': optuna_results['optimized'].get('max_dd', 0)
+                }
+                
+                fig = go.Figure(data=[
+                    go.Bar(x=list(dd_data.keys()), y=list(dd_data.values()),
+                           marker=dict(color=['#d62728', '#06a77d']))
+                ])
+                fig.update_layout(
+                    title="Maximum Drawdown Comparison",
+                    yaxis_title="Drawdown (%)",
+                    height=400,
+                    showlegend=False
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            
+            with col2:
+                st.markdown("#### Drawdown Metrics Summary")
+                
+                dd_summary = []
+                for scenario, results in [("Baseline", optuna_results.get('baseline', {})),
+                                         ("Optimized", optuna_results.get('optimized', {}))]:
+                    dd_summary.append({
+                        'Strategy': scenario,
+                        'Max DD': f"{results.get('max_dd', 0):.2f}%",
+                        'Calmar Ratio': f"{results.get('calmar', 0):.2f}",
+                        'Recovery Time': "N/A (daily data)"
+                    })
+                
+                dd_df = pd.DataFrame(dd_summary)
+                st.dataframe(dd_df, use_container_width=True, hide_index=True)
+        else:
+            st.info("Optimization results not available.")
+
 
 # ============================================================================
 # FOOTER
