@@ -6,7 +6,7 @@
 
 A production-ready quantitative trading system combining traditional technical analysis with machine learning, featuring Bayesian optimization and comprehensive risk management.
 
-**Latest Achievement:** Optuna Optimizer found optimal parameters with **Sharpe 0.84** and **+1,469% P&L improvement**!
+**Latest Achievement:** Added multi-timeframe Streamlit charts (D1/H4/H1/M15) fed by fresh Optuna run (**Sharpe 0.67**, **+1,958% P&L uplift vs baseline**).
 
 ---
 
@@ -21,6 +21,7 @@ This repository contains a **complete algorithmic trading strategy** for the S&P
 - ✅ **Parameter Optimization**: 175 TP/SL combinations tested across 7 market periods
 - ✅ **Production-Ready**: Clean codebase with comprehensive documentation
 - ✅ **Risk Management**: ATR-based stops, 0.5% risk per trade, position sizing
+- ✅ **Multi-Timeframe Charts**: Streamlit page with D1/H4/H1/M15 views, trade markers, EMA/MACD/RSI toggles
 
 ---
 
@@ -86,6 +87,7 @@ streamlit run app.py
 - 🚀 **OOS Validation**: Performance across multiple time periods
 - ⚙️ **Strategy Details**: Signal generation, ML filter, risk management
 - 📑 **Documentation**: Quick links to research documents
+- 🕑 **Multi-Timeframe Charts**: Single-page chart with timeframe switcher (D1/H4/H1/M15) and overlay toggles
 
 **📖 Full Dashboard Documentation**: [DASHBOARD_README.md](DASHBOARD_README.md)
 
@@ -97,6 +99,8 @@ streamlit run app.py
 sp500_agent/
 ├── app.py                   # Streamlit dashboard (NEW)
 ├── DASHBOARD_README.md      # Dashboard documentation (NEW)
+├── pages/                   # Streamlit multipage (Multi-Timeframe Charts)
+│   └── 3_Multi_Timeframe_Charts.py
 ├── src/
 │   ├── models/              # Core strategy scripts
 │   │   ├── final_validation.py          # Main validation engine
