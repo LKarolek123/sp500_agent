@@ -4,6 +4,8 @@
 
 The Streamlit dashboard provides an interactive, web-based interface for exploring the S&P 500 trading strategy performance, parameter sensitivity, and validation results.
 
+**What’s new (2026-01-02):** Added a left-nav multi-timeframe charts page (D1/H4/H1/M15) with trade markers and EMA/MACD/RSI toggles.
+
 ## Features
 
 ### 1. Performance Overview Tab
@@ -40,6 +42,13 @@ The Streamlit dashboard provides an interactive, web-based interface for explori
 - **Setup Instructions**: How to run the dashboard
 - **Attribution**: Author, license, and contact info
 
+### 6. Multi-Timeframe Charts (left nav page)
+
+- **Timeframes**: D1 (default), H4, H1, M15 (M15 uses 6-month resample fallback)
+- **Overlays**: EMA on/off with custom spans; optional MACD and RSI
+- **Trade Markers**: Entries/exits rebuilt from latest Optuna best parameters
+- **Controls**: Collapsible settings below chart (months back, overlays, periods)
+
 ## Installation
 
 ```bash
@@ -75,7 +84,8 @@ The dashboard uses a tabbed interface for organization:
 ├── 🔍 Sensitivity Analysis    → Parameter combinations and heatmaps
 ├── 🚀 Out-of-Sample Validation → Robustness testing across periods
 ├── ⚙️ Strategy Details         → Rules, filters, risk management
-└── 📑 Documentation           → Resources and setup guide
+├── 📑 Documentation           → Resources and setup guide
+└── 📈 Multi-Timeframe Charts  → D1/H4/H1/M15 price + trades + overlays
 ```
 
 ## Data Sources
@@ -234,6 +244,6 @@ level = "info"
 ---
 
 **Last Updated**: 2025  
-**Version**: 1.0  
+**Version**: 1.1  
 **Author**: Karol  
 **License**: MIT
