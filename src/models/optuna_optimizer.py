@@ -14,6 +14,8 @@ Uses Optuna's Tree-structured Parzen Estimator (TPE) for efficient search.
 import os
 import sys
 import json
+import time
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 import pandas as pd
 import numpy as np
 import optuna
@@ -97,16 +99,26 @@ class StrategyOptimizer:
             df_test = self.df.copy()
             signal = self.generate_ma_signal(fast_ma, slow_ma)
             df_test['signal'] = signal
-            
-            # Run backtest
-            trades, equity = simulate_trades(
-                df_test,
-                signal_col='signal',
-                tp_atr=tp_mult,
-                sl_atr=sl_mult,
-                risk_per_trade=risk_per_trade,
-                initial_capital=10000.0
-            )
+
+            # Per-trial timeout (seconds), default 3 via env override OPTUNA_TRIAL_TIMEOUT
+            trial_timeout = float(os.environ.get("OPTUNA_TRIAL_TIMEOUT", 3))
+
+            # Run backtest with timeout using a thread
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(
+                    simulate_trades,
+                    df_test,
+                    signal_col='signal',
+                    tp_atr=tp_mult,
+                    sl_atr=sl_mult,
+                    risk_per_trade=risk_per_trade,
+                    initial_capital=10000.0
+                )
+                try:
+                    trades, equity = future.result(timeout=trial_timeout)
+                except TimeoutError:
+                    future.cancel()
+                    raise optuna.exceptions.TrialPruned("trial timeout")
             
             # Calculate metrics
             stats = compute_basic_stats(trades, equity)
@@ -382,7 +394,7 @@ def main():
     DATA_PATH = 'data/processed/sp500_features_H4.csv'
     OUTPUT_DIR = 'experiments/exp_031_optuna_optimization'
     OPTIMIZE_METRIC = 'sharpe'  # 'sharpe', 'pnl', 'cagr', 'win_rate'
-    N_TRIALS = 100
+    N_TRIALS = int(os.environ.get('OPTUNA_TRIALS', 100))
     
     try:
         # Create optimizer

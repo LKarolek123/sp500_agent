@@ -32,26 +32,35 @@ def simulate_trades(df: pd.DataFrame,
     """
     df = df.copy()
     df = df.sort_index()
+    
+    # Pre-extract arrays for fast access
+    open_arr = df['Open'].values
+    high_arr = df['High'].values
+    low_arr = df['Low'].values
+    close_arr = df['Close'].values
+    signal_arr = df[signal_col].values if signal_col in df.columns else np.zeros(len(df))
+    atr_arr = df['ATR'].values if 'ATR' in df.columns else np.ones(len(df))
+    index_arr = df.index.values
 
     trades = []
     equity = float(initial_capital)
     equity_curve = []
 
     # compute a stable ATR reference for dynamic sizing (single scalar)
-    if dynamic_notional and 'ATR' in df.columns:
+    if dynamic_notional:
         try:
-            atr_ref = float(df['ATR'].rolling(dynamic_window).median().dropna().median())
+            atr_ref = float(np.nanmedian(atr_arr[atr_arr > 0]))
             if np.isnan(atr_ref) or atr_ref <= 0:
-                atr_ref = float(df['ATR'].median(skipna=True) or 1.0)
+                atr_ref = 1.0
         except Exception:
-            atr_ref = float(df['ATR'].median(skipna=True) or 1.0)
+            atr_ref = 1.0
     else:
         atr_ref = None
 
     n = len(df)
     for i in range(n - 1):
-        signal = df.iloc[i].get(signal_col, 0) if signal_col in df.columns else 0
-        if signal == 0 or pd.isna(signal):
+        signal = signal_arr[i]
+        if signal == 0 or np.isnan(signal):
             equity_curve.append(equity)
             continue
 
@@ -61,9 +70,9 @@ def simulate_trades(df: pd.DataFrame,
             continue
 
         # prices and ATR at signal bar
-        entry_price = df.iloc[entry_idx].get('Open', np.nan)
-        atr = df.iloc[i].get('ATR', np.nan) if 'ATR' in df.columns else np.nan
-        if pd.isna(entry_price) or pd.isna(atr) or atr <= 0:
+        entry_price = open_arr[entry_idx]
+        atr = atr_arr[i]
+        if np.isnan(entry_price) or np.isnan(atr) or atr <= 0:
             equity_curve.append(equity)
             continue
 
@@ -116,27 +125,27 @@ def simulate_trades(df: pd.DataFrame,
         exit_reason = None
 
         for j in range(entry_idx, n):
-            high = df.iloc[j].get('High', np.nan)
-            low = df.iloc[j].get('Low', np.nan)
+            high = high_arr[j]
+            low = low_arr[j]
 
             if direction == 1:
-                if not pd.isna(low) and low <= stop_price:
+                if not np.isnan(low) and low <= stop_price:
                     exit_price = stop_price
                     exit_index = j
                     exit_reason = 'SL'
                     break
-                if not pd.isna(high) and high >= tp_price:
+                if not np.isnan(high) and high >= tp_price:
                     exit_price = tp_price
                     exit_index = j
                     exit_reason = 'TP'
                     break
             else:
-                if not pd.isna(high) and high >= stop_price:
+                if not np.isnan(high) and high >= stop_price:
                     exit_price = stop_price
                     exit_index = j
                     exit_reason = 'SL'
                     break
-                if not pd.isna(low) and low <= tp_price:
+                if not np.isnan(low) and low <= tp_price:
                     exit_price = tp_price
                     exit_index = j
                     exit_reason = 'TP'
@@ -145,7 +154,7 @@ def simulate_trades(df: pd.DataFrame,
         # fallback: exit at last close
         if exit_price is None:
             exit_index = n - 1
-            exit_price = df.iloc[exit_index].get('Close', entry_price)
+            exit_price = close_arr[exit_index]
             exit_reason = 'TIMEOUT'
 
         # costs
@@ -157,8 +166,8 @@ def simulate_trades(df: pd.DataFrame,
         equity += pl
 
         trades.append({
-            'entry_index': df.index[entry_idx],
-            'exit_index': df.index[exit_index],
+            'entry_index': index_arr[entry_idx],
+            'exit_index': index_arr[exit_index],
             'direction': direction,
             'entry_price': entry_price,
             'exit_price': exit_price,

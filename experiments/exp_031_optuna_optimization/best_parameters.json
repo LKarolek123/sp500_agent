@@ -1,21 +1,21 @@
 {
-  "best_trial_number": 58,
-  "best_value": 0.8378865520510156,
+  "best_trial_number": 16,
+  "best_value": 0.674585419617315,
   "best_params": {
     "tp_mult": 5.0,
-    "sl_mult": 0.75,
-    "risk_per_trade": 0.02,
-    "fast_ma": 30,
-    "slow_ma": 90
+    "sl_mult": 1.75,
+    "risk_per_trade": 0.008,
+    "fast_ma": 10,
+    "slow_ma": 100
   },
   "best_metrics": {
-    "final_pnl": 53320.64237348454,
-    "cagr": 1.9413700093772857,
-    "sharpe": 0.8378865520510156,
-    "win_rate": 0.2046967379170629,
+    "final_pnl": 72348.19244867125,
+    "cagr": 2.220793097375884,
+    "sharpe": 0.674585419617315,
+    "win_rate": 0.3239343448960185,
     "num_trades": 24187,
-    "max_dd": -33.338749804637466
+    "max_dd": -50.43011662977008
   },
   "optimization_metric": "sharpe",
-  "timestamp": "2026-01-01T13:08:09.575191"
+  "timestamp": "2026-01-02T09:47:09.289255"
 }

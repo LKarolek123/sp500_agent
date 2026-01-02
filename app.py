@@ -15,6 +15,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
 from datetime import datetime
+from src.backtest.simulator_core import simulate_trades
 
 # ============================================================================
 # PAGE CONFIG
@@ -213,7 +214,7 @@ with tab1:
                     val.get('strategy', 'N/A')
                 ]
             })
-            st.dataframe(metrics_df, use_container_width=True, hide_index=True)
+            st.dataframe(metrics_df, width='stretch', hide_index=True)
         
         with col2:
             st.markdown("**Parameters**")
@@ -231,7 +232,7 @@ with tab1:
                     f"{val.get('conf_percentile', 0)*100:.0f}th"
                 ]
             })
-            st.dataframe(params_df, use_container_width=True, hide_index=True)
+            st.dataframe(params_df, width='stretch', hide_index=True)
     else:
         st.error("Final validation data not available")
 
@@ -317,7 +318,7 @@ with tab2:
             height=500
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         st.divider()
         
@@ -331,7 +332,7 @@ with tab2:
         }).round(2)
         
         period_summary.columns = ["Total P&L", "Avg P&L", "Combinations", "Avg Win Rate", "Max DD"]
-        st.dataframe(period_summary, use_container_width=True)
+        st.dataframe(period_summary, width='stretch')
     else:
         st.error("Sensitivity analysis data not available")
 
@@ -374,7 +375,7 @@ with tab3:
         }).round(2)
         
         period_data.columns = ["Total P&L", "Total Trades", "Avg Win Rate", "Max DD"]
-        st.dataframe(period_data, use_container_width=True)
+        st.dataframe(period_data, width='stretch')
         
         st.divider()
         
@@ -394,13 +395,13 @@ with tab3:
             line_color="red",
             annotation_text="Median"
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         st.divider()
         
         # Detailed results table
         st.markdown("### Detailed OOS Results")
-        st.dataframe(oos_df, use_container_width=True)
+        st.dataframe(oos_df, width='stretch')
     else:
         st.error("OOS validation data not available")
 
@@ -663,7 +664,7 @@ with tab6:
                 })
             
             comp_df = pd.DataFrame(comparison_data)
-            st.dataframe(comp_df, use_container_width=True, hide_index=True)
+            st.dataframe(comp_df, width='stretch', hide_index=True)
         
         else:
             st.info("⏳ Optimization results not yet loaded. Run Optuna optimizer first.")
@@ -698,7 +699,7 @@ with tab6:
                     })
                 
                 var_df = pd.DataFrame(var_data)
-                st.dataframe(var_df, use_container_width=True, hide_index=True)
+                st.dataframe(var_df, width='stretch', hide_index=True)
             
             with col2:
                 st.markdown("#### Risk Interpretation")
@@ -748,7 +749,7 @@ with tab6:
                     height=400,
                     showlegend=False
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             
             with col2:
                 st.markdown("#### Drawdown Metrics Summary")
@@ -764,7 +765,7 @@ with tab6:
                     })
                 
                 dd_df = pd.DataFrame(dd_summary)
-                st.dataframe(dd_df, use_container_width=True, hide_index=True)
+                st.dataframe(dd_df, width='stretch', hide_index=True)
         else:
             st.info("Optimization results not available.")
 
