@@ -1,0 +1,25 @@
+[Unit]
+Description=SP500 Alpaca Trading Bot
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/app
+
+# Load env vars from .env
+EnvironmentFile=/app/.env
+
+# Command
+ExecStart=/usr/bin/python3 /app/src/live/live_trader_alpaca.py --symbol SPY --check-interval 60
+
+# Auto-restart
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
