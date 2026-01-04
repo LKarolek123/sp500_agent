@@ -38,3 +38,11 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# XTB credentials (NEVER commit!)
+config/xtb_config.json
+docs/klucz.txt
+
+# Alpaca credentials (NEVER commit!)
+config/alpaca_config.json
+.env
