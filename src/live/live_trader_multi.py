@@ -21,7 +21,7 @@ from typing import Optional, Dict, List
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.live.alpaca_connector import AlpacaConnector
-from src.live.sp500_screener import get_sp500_symbols
+from src.live.sp500_screener import get_sp500_symbols, get_profitable_8_symbols
 
 
 class MultiSymbolTrader:
@@ -241,14 +241,14 @@ if __name__ == "__main__":
     parser.add_argument("--auto-start", action="store_true", help="Skip confirmation prompt")
     args = parser.parse_args()
 
-    # Use provided symbols or default to top 18 + SPX
-    symbols = args.symbols if args.symbols else get_sp500_symbols()
+    # Use provided symbols, default to top 8 profitable symbols
+    symbols = args.symbols if args.symbols else get_profitable_8_symbols()
     symbols = [s for s in symbols if s != "SPX"]  # exclude index from trading
     
-    print(f"📊 Trading {len(symbols)} symbols: {', '.join(symbols[:5])}...")
+    print(f"Trading {len(symbols)} symbols: {', '.join(symbols)}")
 
     if not args.auto_start:
-        print("⚠️  This will trade multiple symbols on Alpaca paper account.")
+    print(f"⚠️  This will trade 8 profitable symbols on Alpaca paper account.")
         resp = input("Type START to continue: ")
         if resp.strip().upper() != "START":
             print("Aborted.")
