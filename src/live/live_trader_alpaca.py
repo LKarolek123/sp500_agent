@@ -210,13 +210,15 @@ if __name__ == "__main__":
     parser.add_argument("--check-interval", type=int, default=60, help="Seconds between checks")
     parser.add_argument("--fast", type=int, default=10, help="Fast EMA period")
     parser.add_argument("--slow", type=int, default=100, help="Slow EMA period")
+    parser.add_argument("--auto-start", action="store_true", help="Skip confirmation prompt")
     args = parser.parse_args()
 
-    print("⚠️  This will place paper trades on Alpaca.")
-    resp = input("Type START to continue: ")
-    if resp.strip().upper() != "START":
-        print("Aborted.")
-        sys.exit(0)
+    if not args.auto_start:
+        print("⚠️  This will place paper trades on Alpaca.")
+        resp = input("Type START to continue: ")
+        if resp.strip().upper() != "START":
+            print("Aborted.")
+            sys.exit(0)
 
     connector = AlpacaConnector.from_config().connect()
     trader = LiveTraderAlpaca(
