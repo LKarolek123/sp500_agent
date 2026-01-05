@@ -1,292 +1,374 @@
-# S&P 500 Trading Strategy Portfolio
+# S&P 500 Multi-Symbol Trading Bot
 
-[![Python](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-3/10%20Complete-success.svg)]()
+[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
+[![Alpaca](https://img.shields.io/badge/Broker-Alpaca-green.svg)](https://alpaca.markets)
+[![Docker](https://img.shields.io/badge/Docker-Enabled-blue.svg)](https://www.docker.com/)
+[![Status](https://img.shields.io/badge/Status-Live%20Trading-success.svg)]()
 
-A production-ready quantitative trading system combining traditional technical analysis with machine learning, featuring Bayesian optimization and comprehensive risk management.
+A **production-grade algorithmic trading bot** monitoring 8 S&P 500 stocks 24/7 on Hetzner VPS using EMA crossover strategy with proven profitability.
 
-**Latest Achievement:** Added multi-timeframe Streamlit charts (D1/H4/H1/M15) fed by fresh Optuna run (**Sharpe 0.67**, **+1,958% P&L uplift vs baseline**).
-
----
-
-## 📊 Project Overview
-
-This repository contains a **complete algorithmic trading strategy** for the S&P 500 index, developed through systematic research and rigorous validation. The strategy achieves **consistent profitability** (+327 PLN on 15.96 years of data) with controlled risk exposure.
-
-### Key Features
-
-- ✅ **Hybrid Architecture**: MA20/MA50 crossovers filtered by XGBoost ML model
-- ✅ **Robust Validation**: 3-method validation (full dataset, OOS sweep, sensitivity analysis)
-- ✅ **Parameter Optimization**: 175 TP/SL combinations tested across 7 market periods
-- ✅ **Production-Ready**: Clean codebase with comprehensive documentation
-- ✅ **Risk Management**: ATR-based stops, 0.5% risk per trade, position sizing
-- ✅ **Multi-Timeframe Charts**: Streamlit page with D1/H4/H1/M15 views, trade markers, EMA/MACD/RSI toggles
+**Current Status**: ✅ **LIVE** on Hetzner (46.224.197.25) | 🎯 Trading Top 8 Symbols | 📈 +11.53% Avg P&L (backtest)
 
 ---
 
-## 🎯 Strategy Performance
+## 🎯 Strategy at a Glance
 
-### Baseline Configuration
-
+### Symbols (Top 8 Profitable)
 ```
-Signal Generator:   MA20/MA50 EMA crossover
-ML Filter:          XGBoost (p98 confidence threshold)
-Take Profit:        3.5 × ATR
-Stop Loss:          1.0 × ATR
-Risk per Trade:     0.5% of capital
-Initial Capital:    10,000 PLN
+TSLA (+30.87%)  DIS (+14.95%)  GOOGL (+14.10%)  JNJ (+11.37%)
+JPM (+7.97%)    LLY (+6.88%)   META (+4.92%)    AMZN (+1.20%)
 ```
 
-### Key Metrics (2010-2025)
+### Signal Generation
+- **Fast EMA**: 10-period exponential moving average
+- **Slow EMA**: 100-period exponential moving average
+- **Entry Signal**: When Fast EMA crosses above/below Slow EMA
+- **Exit Strategy**: Take profit at +6% or Stop Loss at -3%
 
-| Metric           | Value           |
-| ---------------- | --------------- |
-| **Total P&L**    | +327 PLN        |
-| **CAGR**         | +0.20% per year |
-| **Total Trades** | 73              |
-| **Win Rate**     | ~40%            |
-| **Max Drawdown** | -1-2%           |
-| **Expectancy**   | +4.48 PLN/trade |
-
-### Time-Horizon Returns
-
-| Period   | CAGR   | Total Return |
-| -------- | ------ | ------------ |
-| 15 years | +0.20% | +3.05%       |
-| 10 years | +0.38% | +3.87%       |
-| 5 years  | +1.07% | +5.51%       |
-| 3 years  | +2.57% | +7.90%       |
-| 1 year   | +6.35% | +6.35%       |
-| 6 months | +5.73% | +2.82%       |
-
-**Observation**: Strategy performs better in recent market conditions (shorter horizons show higher returns).
+### Risk Management
+- **Max Concurrent Positions**: 5 trades
+- **Risk Per Trade**: 0.8% of equity (~$800 on $100k account)
+- **Position Sizing**: Dynamic based on ATR volatility
+- **Check Interval**: Every 2 minutes (120 seconds)
+- **Market Hours Only**: Skips analysis during market closure
 
 ---
 
-## 📈 Interactive Dashboard
+## 📊 Backtest Results
 
-**New in v2.0**: Streamlit-powered web dashboard for interactive strategy analysis
+### 2-Year Historical Performance (Jan 2024 - Dec 2025)
 
-### Quick Start
+| Metric | Value |
+|--------|-------|
+| **Average P&L** | +11.53% |
+| **Symbols Profitable** | 8/8 (100%) |
+| **Total Portfolio** | +92.27% |
+| **Avg Trades/Symbol** | 7.5 |
+| **Best Symbol** | TSLA: +30.87% (83.3% WR) |
+| **Worst Symbol** | AMZN: +1.20% (37.5% WR) |
 
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run dashboard
-streamlit run app.py
-
-# Open http://localhost:8501 in browser
+### Individual Symbol Performance
 ```
-
-### Dashboard Features
-
-- 📊 **Performance Overview**: Key metrics, P&L, win rate, drawdown
-- 🔍 **Sensitivity Analysis**: 175 parameter combinations with heatmaps
-- 🚀 **OOS Validation**: Performance across multiple time periods
-- ⚙️ **Strategy Details**: Signal generation, ML filter, risk management
-- 📑 **Documentation**: Quick links to research documents
-- 🕑 **Multi-Timeframe Charts**: Single-page chart with timeframe switcher (D1/H4/H1/M15) and overlay toggles
-
-**📖 Full Dashboard Documentation**: [DASHBOARD_README.md](DASHBOARD_README.md)
-
----
-
-## 🏗️ Project Structure
-
-```
-sp500_agent/
-├── app.py                   # Streamlit dashboard (NEW)
-├── DASHBOARD_README.md      # Dashboard documentation (NEW)
-├── pages/                   # Streamlit multipage (Multi-Timeframe Charts)
-│   └── 3_Multi_Timeframe_Charts.py
-├── src/
-│   ├── models/              # Core strategy scripts
-│   │   ├── final_validation.py          # Main validation engine
-│   │   ├── hybrid_ma_ml_filter.py       # Strategy implementation
-│   │   ├── run_oos_sweep.py             # Out-of-sample testing
-│   │   └── run_sensitivity_direct.py    # Parameter sensitivity
-│   ├── backtest/            # Backtesting engine
-│   │   ├── simulator_core.py            # Trade execution simulator
-│   │   └── metrics.py                   # Performance metrics
-│   ├── features/            # Feature engineering
-│   │   └── feature_engine.py            # Technical indicators
-│   └── utils/               # Helper functions
-├── data/
-│   └── processed/           # S&P 500 OHLCV data (1928-2025)
-├── experiments/             # Validation results
-│   ├── exp_015_final_validation/
-│   ├── exp_025_oos_sweep/
-│   └── exp_026_subperiod_sensitivity/
-├── notebooks/               # Jupyter analysis
-├── tests/                   # Unit tests
-├── docs/                    # Documentation
-│   ├── STRATEGIA_WYJAŚNIENIE_I_ULEPSZENIA.md
-│   ├── PODSUMOWANIE_WRAŻLIWOŚĆ.md
-│   └── IMPROVEMENT_ATTEMPTS_FAILED.md
-└── requirements.txt
+TSLA   [83.3% WR]  +30.87%  STAR
+DIS    [50.0% WR]  +14.95%  
+GOOGL  [50.0% WR]  +14.10%  
+JNJ    [40.0% WR]  +11.37%  
+JPM    [50.0% WR]   +7.97%  
+LLY    [40.0% WR]   +6.88%  
+META   [33.3% WR]   +4.92%  
+AMZN   [37.5% WR]   +1.20%  
 ```
 
 ---
 
 ## 🚀 Quick Start
 
-### Installation
+### Local Testing (Backtest)
 
 ```bash
-# Clone repository
-git clone https://github.com/yourusername/sp500_agent.git
-cd sp500_agent
-
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
 # Install dependencies
 pip install -r requirements.txt
+
+# Run backtest on top 8 symbols
+python test_top_8.py
+
+# Run backtest on all 18 S&P 500 stocks
+python test_all_18.py
 ```
 
-### Run Validation
+### Live Trading Setup
 
+#### 1. Get Alpaca API Keys
 ```bash
-# Full dataset validation
-python src/models/final_validation.py
+# Sign up for paper trading: https://app.alpaca.markets/signup
+# Get API keys from dashboard
+```
 
-# Out-of-sample sweep (4 windows)
-python src/models/run_oos_sweep.py
+#### 2. Configure Environment
+```bash
+# Create .env file
+echo "ALPACA_API_KEY=your_api_key" > .env
+echo "ALPACA_SECRET_KEY=your_secret_key" >> .env
+echo "ALPACA_BASE_URL=https://paper-api.alpaca.markets" >> .env
+```
 
-# Sensitivity analysis (175 combinations)
-python src/models/run_sensitivity_direct.py
+#### 3. Run Locally
+```bash
+# Test locally (interactive mode)
+python src/live/live_trader_multi.py
+
+# Auto-start without confirmation
+python src/live/live_trader_multi.py --auto-start
+
+# Trade specific symbols only
+python src/live/live_trader_multi.py --symbols TSLA GOOGL AMZN
+```
+
+#### 4. Deploy to Docker
+```bash
+# Build image
+docker build -t sp500-bot:v2 .
+
+# Run container
+docker run -d --name sp500-bot --restart unless-stopped \
+  -e ALPACA_API_KEY="your_api_key" \
+  -e ALPACA_SECRET_KEY="your_secret_key" \
+  -e ALPACA_BASE_URL="https://paper-api.alpaca.markets" \
+  sp500-bot:v2
+
+# Monitor logs
+docker logs -f sp500-bot
 ```
 
 ---
 
-## 🔬 Validation Methodology
+## 📁 Project Structure
 
-### 1. Full Dataset Validation
-
-- **Data**: 2010-2025 (15.96 years)
-- **Result**: +469.67 PLN
-- **Method**: Train on 70% (in-sample), test on remaining 30%
-
-### 2. Out-of-Sample Sweep
-
-- **4 windows**: Different 85%/15% train/test splits
-- **Result**: +1,357 PLN total (median 66th percentile)
-- **Purpose**: Verify strategy robustness across different market regimes
-
-### 3. Subperiod Sensitivity Analysis
-
-- **7 time periods** × **25 TP/SL combinations** = **175 tests**
-- **Result**: +2,921 PLN total
-- **Optimal**: TP=3.5×ATR, SL=1.0×ATR (best in 4/7 periods)
-- **Purpose**: Find parameter stability across market conditions
-
----
-
-## 📈 Technical Details
-
-### Signal Generation
-
-1. **MA Crossover**: EMA20 crosses above/below EMA50
-
-   - LONG: EMA20 > EMA50
-   - SHORT: EMA20 < EMA50
-
-2. **ML Filter**: XGBoost classifier predicts signal validity
-
-   - Features: 24 technical indicators (RSI, MACD, Bollinger, ATR, etc.)
-   - Training: Rolling window on historical signals
-   - Threshold: Only trade if model confidence > 98th percentile
-
-3. **Risk Management**:
-   - Position size: 0.5% of capital at risk
-   - Take profit: 3.5 × ATR
-   - Stop loss: 1.0 × ATR
-   - Max position: 2% of capital notional
-
-### Why This Works
-
-- **Trend-following**: MA crossovers capture strong directional moves
-- **ML filtering**: Reduces false breakouts (filters ~60-70% of signals)
-- **Adaptive stops**: ATR-based levels adjust to market volatility
-- **Positive expectancy**: 40% win rate × asymmetric R:R = profitable
+```
+sp500_agent/
+├── README.md                         # This file
+├── Dockerfile                        # Docker configuration
+├── requirements.txt                  # Python dependencies
+├── .env                             # API credentials (git ignored)
+├── .gitignore                       # Git ignore rules
+│
+├── config/
+│   └── alpaca_config.json           # (Optional) config template
+│
+├── src/
+│   ├── live/
+│   │   ├── alpaca_connector.py      # REST API wrapper (batch quotes, bracket orders)
+│   │   ├── live_trader_multi.py     # Main trading loop (EMA signals, position management)
+│   │   └── sp500_screener.py        # Symbol lists (top 8 profitable + all 18)
+│   │
+│   └── backtest/
+│       └── ema_backtest.py          # Backtest engine (yfinance data, EMA crossover simulation)
+│
+└── test_*.py
+    ├── test_top_8.py                # Validate strategy on 8 symbols
+    ├── test_all_18.py               # Validate strategy on 18 symbols
+    └── test_ema_comparison.py       # Compare EMA 10/100 vs 20/100
+```
 
 ---
 
-## 📚 Documentation
+## 🔧 Configuration
 
-### Key Documents
+### Trading Parameters
+Edit `src/live/live_trader_multi.py`:
+```python
+MultiSymbolTrader(
+    fast_ma=10,              # Fast EMA period
+    slow_ma=100,             # Slow EMA period
+    tp_atr_mult=5.0,         # TP = 5.0 × ATR (≈6% for S&P 500)
+    sl_atr_mult=1.75,        # SL = 1.75 × ATR (≈3% for S&P 500)
+    risk_per_trade=0.008,    # 0.8% risk per trade
+    max_positions=5,         # Max 5 concurrent trades
+    check_interval=120,      # Check every 120 seconds
+)
+```
 
-1. **[Strategy Explanation](docs/STRATEGIA_WYJAŚNIENIE_I_ULEPSZENIA.md)** (Polish)
-
-   - Complete strategy mechanics
-   - Problem analysis (low CAGR, high variance)
-   - 3-phase improvement roadmap
-
-2. **[Sensitivity Analysis](docs/PODSUMOWANIE_WRAŻLIWOŚĆ.md)** (Polish)
-
-   - 175 parameter combinations tested
-   - Performance across 7 market periods
-   - Optimal TP/SL identification
-
-3. **[Failed Improvements](docs/IMPROVEMENT_ATTEMPTS_FAILED.md)** (Polish)
-   - RSI trend strength filter (-126% degradation)
-   - Walk-forward retraining (-689% degradation)
-   - Lower confidence thresholds (-273% degradation)
-   - Root cause analysis & lessons learned
-
----
-
-## 🛠️ Tech Stack
-
-- **Python 3.13** — Core language
-- **pandas** — Data manipulation
-- **NumPy** — Numerical computing
-- **XGBoost** — Machine learning (gradient boosting)
-- **scikit-learn** — Model evaluation
-- **Jupyter** — Interactive analysis
+### Backtest Parameters
+Edit `src/backtest/ema_backtest.py`:
+```python
+backtest_ema_crossover(
+    fast=10,        # Fast EMA
+    slow=100,       # Slow EMA
+    tp_pct=0.06,    # 6% take profit
+    sl_pct=0.03,    # 3% stop loss
+)
+```
 
 ---
 
-## ⚠️ Limitations & Future Work
+## 📡 Live Deployment (Hetzner)
 
-### Current Limitations
+### SSH Setup
+```bash
+# Connect to VPS
+ssh root@46.224.197.25
 
-1. **Daily data only** — No intraday timestamps (session filtering impossible)
-2. **Limited features** — Only OHLCV + technical indicators
-3. **Single asset** — S&P 500 index only
-4. **Low frequency** — ~5 trades per year (limited sample size)
+# Navigate to project
+cd /opt/sp500_agent
 
-### Potential Improvements
+# Pull latest code
+git pull origin main
 
-- **Intraday data** (H1/H4) → Session filtering, shorter holding periods
-- **Alternative features** → Macro indicators (VIX, interest rates, sentiment)
-- **Ensemble methods** → Combine multiple models/strategies
-- **Multi-asset universe** → Portfolio diversification
-- **Advanced ML** → LSTM, Transformers for temporal patterns
+# Rebuild Docker image
+docker build -t sp500-bot:v2 .
+
+# Stop old container
+docker stop sp500-bot && docker rm sp500-bot
+
+# Start new container
+docker run -d --name sp500-bot --restart unless-stopped \
+  -e ALPACA_API_KEY="your_key" \
+  -e ALPACA_SECRET_KEY="your_secret" \
+  -e ALPACA_BASE_URL="https://paper-api.alpaca.markets" \
+  sp500-bot:v2
+
+# Monitor logs
+docker logs -f sp500-bot
+```
+
+### Health Check
+```bash
+# Check container status
+docker ps | grep sp500-bot
+
+# View recent logs (last 50 lines)
+docker logs --tail=50 sp500-bot
+
+# Full logs with timestamps
+docker logs --timestamps sp500-bot
+```
+
+---
+
+## 📊 How It Works
+
+### Trading Cycle (Every 120 seconds)
+
+```
+1. Check if market is open (NYSE hours)
+   |
+2. Fetch latest prices for 8 symbols (batch API call)
+   |
+3. Calculate EMA 10 & EMA 100 for each symbol
+   |
+4. Check for crossover signals (EMA10 > EMA100 or EMA10 < EMA100)
+   |
+5. For each signal, check if < max_positions limit
+   |
+6. Open bracket order: Entry + TP/SL limits
+   |
+7. Monitor open positions for TP/SL hits
+   |
+8. Log trades to stdout (JSON format)
+   |
+9. Wait 120 seconds, repeat
+```
+
+---
+
+## 🧪 Testing
+
+### Run Backtest on Top 8
+```bash
+python test_top_8.py
+```
+**Expected**: Average P&L +11.53%, 8/8 symbols profitable, TSLA as star performer
+
+### Run Backtest on All 18
+```bash
+python test_all_18.py
+```
+**Expected**: Average P&L -0.74%, 8/18 symbols profitable (shows why we focus on top 8)
+
+### Run EMA Strategy Comparison
+```bash
+python test_ema_comparison.py
+```
+**Expected**: EMA 10/100 outperforms EMA 20/100 on 4/5 test symbols
+
+---
+
+## 📝 API Integration
+
+### Alpaca REST API v2
+- **Broker**: Alpaca Securities
+- **Account Type**: Paper Trading (simulated, no real money)
+- **Features Used**:
+  - Batch quotes (get prices for multiple symbols)
+  - Bracket orders (entry + TP/SL in single call)
+  - Position management (current open trades)
+  - Account info (equity, buying power)
+
+### Data Source
+- **Historical Data**: yfinance (Yahoo Finance)
+- **Live Data**: Alpaca REST API
+- **Timeframe**: Daily (1D) bars
+
+---
+
+## ⚠️ Risk Disclaimer
+
+**This is a paper trading bot using simulated equity. NO REAL MONEY IS INVOLVED.**
+
+- Backtest results are not guaranteed for live trading
+- Past performance does not indicate future results
+- Market conditions can change rapidly
+- Always use proper risk management (stop losses, position sizing)
+- Start with paper trading before using real capital
+- Consult a financial advisor before trading with real money
+
+---
+
+## 🔍 Troubleshooting
+
+### Bot Not Trading
+- Check if market is open (9:30 AM - 4:00 PM EST weekdays)
+- Verify API credentials in environment variables
+- Check Docker logs: `docker logs sp500-bot`
+
+### High API Rate Limits
+- Increase `check_interval` (default 120 sec is safe)
+- Alpaca allows 200 requests per minute for paper accounts
+
+### Data Fetch Errors
+- yfinance sometimes blocks large batch downloads
+- Try reducing number of symbols or adding delays
+- Use `python test_top_8.py` to test data fetching
+
+---
+
+## 📚 Files Reference
+
+| File | Purpose |
+|------|---------|
+| `alpaca_connector.py` | REST API wrapper (quotes, orders, account) |
+| `live_trader_multi.py` | Main bot (EMA signals, position management) |
+| `sp500_screener.py` | Symbol lists (profitable 8 + all 18) |
+| `ema_backtest.py` | Backtest engine (historical simulation) |
+| `Dockerfile` | Docker container definition |
+| `requirements.txt` | Python package dependencies |
+
+---
+
+## 🚀 Next Steps
+
+- [ ] Add Slack notifications for trades
+- [ ] Implement performance dashboard (Streamlit)
+- [ ] Add email alerts for P&L changes
+- [ ] Test with different time intervals (30min, 1hr bars)
+- [ ] Try other indicators (RSI, MACD) as filters
+- [ ] Optimize position sizing using Kelly Criterion
+- [ ] Add trailing stop losses
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
+MIT License - See [LICENSE](LICENSE) for details
 
 ---
 
 ## 👤 Author
 
-**Karol** — Portfolio project demonstrating algorithmic trading & quantitative analysis skills
+Karol - S&P 500 Trading Bot (2026)
+
+**Repository**: https://github.com/LKarolek123/sp500_agent
 
 ---
 
-## 🙏 Acknowledgments
+## 📞 Support
 
-- S&P 500 data sourced from public financial APIs
-- Inspired by systematic trading research and quantitative finance literature
-- Built as portfolio demonstration of end-to-end strategy development
+For issues, questions, or improvements:
+1. Check the troubleshooting section above
+2. Review backtest results in `test_top_8.py` output
+3. Check Docker logs for runtime errors
+4. Review Alpaca API documentation: https://alpaca.markets/docs/
 
 ---
 
-**⭐ If you find this project useful, please consider giving it a star!**
+**Last Updated**: January 5, 2026 | **Bot Status**: LIVE ✅
