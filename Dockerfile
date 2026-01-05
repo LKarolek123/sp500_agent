@@ -25,5 +25,5 @@ RUN mkdir -p logs
 # (Alpaca connector will read from ALPACA_API_KEY, ALPACA_SECRET_KEY)
 ENV PYTHONUNBUFFERED=1
 
-# Run the bot (--auto-start skips confirmation prompt)
-CMD ["python", "src/live/live_trader_alpaca.py", "--symbol", "SPY", "--check-interval", "60", "--auto-start"]
+# Run the multi-symbol bot (--auto-start skips confirmation prompt)
+CMD ["python", "src/live/live_trader_multi.py", "--max-positions", "5", "--check-interval", "120", "--auto-start"]
