@@ -1,17 +1,17 @@
 """
-S&P 500 screener - zwraca top 18 spółek + indeks rynkowy (SPX).
+S&P 500 screener - returns top 18 stocks + S&P 500 ETF (SPY).
 
-Top 18 by market cap (bez BRK.B - problematyczne w yfinance):
+Top 18 by market cap (excluding BRK.B - problematic in yfinance):
 1. MSFT, AAPL, NVDA, GOOGL, AMZN, META, TSLA, JNJ, V, WMT, JPM, PG, XOM, MA, HD, PFE, DIS, LLY
 
-+ SPX (S&P 500 index) dla referencji rynkowej.
++ SPY (S&P 500 ETF) for market reference and trading.
 """
 
 
 def get_sp500_symbols():
-    """Zwraca listę 18 top spółek + SPX."""
+    """Returns list of 18 top stocks + SPY (tradeable S&P 500 ETF)."""
     return [
-        # Top 18 by market cap (bez BRK.B)
+        # Top 18 by market cap
         "MSFT",  # Microsoft
         "AAPL",  # Apple
         "NVDA",  # NVIDIA
@@ -30,8 +30,8 @@ def get_sp500_symbols():
         "PFE",  # Pfizer
         "DIS",  # Disney
         "LLY",  # Eli Lilly
-        # Index reference
-        "SPX",  # S&P 500 (index, no trading)
+        # Market reference
+        "SPY",  # S&P 500 ETF (tradeable)
     ]
 
 
