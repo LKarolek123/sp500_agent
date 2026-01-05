@@ -12,7 +12,7 @@ Docs:
 import os
 import json
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 import alpaca_trade_api as tradeapi
 
@@ -151,6 +151,39 @@ class AlpacaConnector:
             return pos._raw
         except Exception:
             return None
+
+    def get_batch_quotes(self, symbols: List[str]) -> Dict[str, Optional[Dict[str, Any]]]:
+        """
+        Get latest quotes for multiple symbols at once.
+        
+        Returns:
+            Dict[symbol -> quote_data] or None if error
+        """
+        try:
+            # Alpaca API get_latest_quote accepts single symbol
+            # For batch, we need to call get_latest_bars or loop
+            # Using loop for simplicity (can optimize with REST batch endpoint)
+            quotes = {}
+            for symbol in symbols:
+                try:
+                    quote = self.get_last_quote(symbol)
+                    quotes[symbol] = quote
+                except Exception as e:
+                    print(f"Error fetching quote for {symbol}: {e}")
+                    quotes[symbol] = None
+            return quotes
+        except Exception as e:
+            print(f"Error in batch quotes: {e}")
+            return {}
+
+    def get_all_positions(self) -> List[Dict[str, Any]]:
+        """Get all open positions."""
+        try:
+            positions = self.api.list_positions()
+            return [p._raw for p in positions]
+        except Exception as e:
+            print(f"Error fetching positions: {e}")
+            return []
 
 
 if __name__ == "__main__":
