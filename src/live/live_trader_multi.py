@@ -246,7 +246,7 @@ if __name__ == "__main__":
         "--mode",
         choices=["top8+index", "top8", "all18", "index"],
         default="top8+index",
-        help="Trading mode: top8+index (8 stocks + SPX), top8 only, all18, or index only",
+        help="Trading mode: top8+index (8 stocks + SPY), top8 only, all18, or index only",
     )
     parser.add_argument(
         "--symbols",
@@ -265,22 +265,22 @@ if __name__ == "__main__":
     if args.symbols:
         symbols = args.symbols
     elif args.mode == "top8+index":
-        symbols = list(get_profitable_8_symbols()) + ["SPX"]
+        symbols = list(get_profitable_8_symbols()) + ["SPY"]
     elif args.mode == "top8":
         symbols = get_profitable_8_symbols()
     elif args.mode == "all18":
-        symbols = get_sp500_symbols()  # Include SPX
+        symbols = get_sp500_symbols()  # Include SPY
     elif args.mode == "index":
-        symbols = ["SPX"]
+        symbols = ["SPY"]
     
     print(f"[{args.mode.upper()}] Trading {len(symbols)} symbol(s): {', '.join(symbols)}")
 
     if not args.auto_start:
         mode_desc = {
-            "top8+index": "8 profitable stocks + SPX index (EMA 10/100, TP=6%, SL=3%)",
+            "top8+index": "8 profitable stocks + SPY ETF (EMA 10/100, TP=6%, SL=3%)",
             "top8": "8 profitable stocks only (EMA 10/100, TP=6%, SL=3%)",
-            "all18": "18 S&P 500 stocks + SPX index (EMA 10/100, TP=6%, SL=3%)",
-            "index": "S&P 500 index SPX only (EMA 10/100, TP=6%, SL=3%)"
+            "all18": "18 S&P 500 stocks + SPY ETF (EMA 10/100, TP=6%, SL=3%)",
+            "index": "S&P 500 ETF (SPY only) - EMA 10/100, TP=6%, SL=3%"
         }
         print(f"\nTrading mode: {mode_desc.get(args.mode, 'CUSTOM')}")
         print(f"Symbols: {', '.join(symbols)}")
