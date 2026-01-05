@@ -224,33 +224,28 @@ class MultiSymbolTrader:
             print(f"  ❌ Order failed for {symbol}")
 
 
-def load_symbols_from_json(filepath: Path) -> List[str]:
-    """Load symbols from screener output JSON."""
-    with open(filepath, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    return [stock["symbol"] for stock in data]
-
-
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Multi-Symbol Live Trader")
-    parser.add_argument("--symbols-file", default="config/top_stocks.json", help="JSON file with symbols")
+    parser.add_argument(
+        "--symbols",
+        nargs="+",
+        default=None,
+        help="List of symbols (default: top 18 S&P 500 + SPX)",
+    )
     parser.add_argument("--max-positions", type=int, default=5, help="Max concurrent positions")
-    parser.add_argument("--check-interval", type=int, default=60, help="Seconds between checks")
+    parser.add_argument("--check-interval", type=int, default=120, help="Seconds between checks")
     parser.add_argument("--fast", type=int, default=10, help="Fast EMA period")
     parser.add_argument("--slow", type=int, default=100, help="Slow EMA period")
     parser.add_argument("--auto-start", action="store_true", help="Skip confirmation prompt")
     args = parser.parse_args()
 
-    symbols_path = Path(__file__).parent.parent.parent / args.symbols_file
-    if not symbols_path.exists():
-        print(f"❌ Symbols file not found: {symbols_path}")
-        print("Run: python src/data/sp500_screener.py --use-cached")
-        sys.exit(1)
-
-    symbols = load_symbols_from_json(symbols_path)
-    print(f"Loaded {len(symbols)} symbols from {args.symbols_file}")
+    # Use provided symbols or default to top 18 + SPX
+    symbols = args.symbols if args.symbols else get_sp500_symbols()
+    symbols = [s for s in symbols if s != "SPX"]  # exclude index from trading
+    
+    print(f"📊 Trading {len(symbols)} symbols: {', '.join(symbols[:5])}...")
 
     if not args.auto_start:
         print("⚠️  This will trade multiple symbols on Alpaca paper account.")
