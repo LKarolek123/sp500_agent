@@ -248,7 +248,7 @@ if __name__ == "__main__":
     print(f"Trading {len(symbols)} symbols: {', '.join(symbols)}")
 
     if not args.auto_start:
-    print(f"⚠️  This will trade 8 profitable symbols on Alpaca paper account.")
+        print(f"⚠️  This will trade 8 profitable symbols on Alpaca paper account.")
         resp = input("Type START to continue: ")
         if resp.strip().upper() != "START":
             print("Aborted.")
