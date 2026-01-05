@@ -1,14 +1,28 @@
 """
-Multi-symbol live trader for top 18 S&P 500 stocks + SPX index.
+Multi-symbol live trader for S&P 500 (stocks or index).
 
-- Monitors 18 symbols simultaneously
+- Monitor 8 best stocks + SPX index (default)
+- Or trade all 18 stocks, just top 8, or index only
 - EMA crossover on each symbol independently
 - Max N concurrent positions (configurable)
 - Risk sizing per symbol
 - Bracket orders (entry + TP/SL)
 
 Run:
-    python src/live/live_trader_multi.py --symbols MSFT AAPL NVDA --max-positions 5 --check-interval 120
+    # Top 8 stocks + S&P 500 index (default, RECOMMENDED)
+    python src/live/live_trader_multi.py --auto-start
+    
+    # Top 8 stocks only
+    python src/live/live_trader_multi.py --mode top8 --auto-start
+    
+    # All 18 S&P 500 stocks + index
+    python src/live/live_trader_multi.py --mode all18 --auto-start
+    
+    # S&P 500 index only
+    python src/live/live_trader_multi.py --mode index --auto-start
+    
+    # Custom symbols
+    python src/live/live_trader_multi.py --symbols TSLA GOOGL AMZN SPX --auto-start
 """
 import sys
 import time
@@ -229,10 +243,16 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Multi-Symbol Live Trader")
     parser.add_argument(
+        "--mode",
+        choices=["top8+index", "top8", "all18", "index"],
+        default="top8+index",
+        help="Trading mode: top8+index (8 stocks + SPX), top8 only, all18, or index only",
+    )
+    parser.add_argument(
         "--symbols",
         nargs="+",
         default=None,
-        help="List of symbols (default: top 18 S&P 500 + SPX)",
+        help="Custom symbol list (overrides --mode)",
     )
     parser.add_argument("--max-positions", type=int, default=5, help="Max concurrent positions")
     parser.add_argument("--check-interval", type=int, default=120, help="Seconds between checks")
@@ -241,14 +261,30 @@ if __name__ == "__main__":
     parser.add_argument("--auto-start", action="store_true", help="Skip confirmation prompt")
     args = parser.parse_args()
 
-    # Use provided symbols, default to top 8 profitable symbols
-    symbols = args.symbols if args.symbols else get_profitable_8_symbols()
-    symbols = [s for s in symbols if s != "SPX"]  # exclude index from trading
+    # Determine symbols based on mode
+    if args.symbols:
+        symbols = args.symbols
+    elif args.mode == "top8+index":
+        symbols = list(get_profitable_8_symbols()) + ["SPX"]
+    elif args.mode == "top8":
+        symbols = get_profitable_8_symbols()
+    elif args.mode == "all18":
+        symbols = get_sp500_symbols()  # Include SPX
+    elif args.mode == "index":
+        symbols = ["SPX"]
     
-    print(f"Trading {len(symbols)} symbols: {', '.join(symbols)}")
+    print(f"[{args.mode.upper()}] Trading {len(symbols)} symbol(s): {', '.join(symbols)}")
 
     if not args.auto_start:
-        print(f"⚠️  This will trade 8 profitable symbols on Alpaca paper account.")
+        mode_desc = {
+            "top8+index": "8 profitable stocks + SPX index (EMA 10/100, TP=6%, SL=3%)",
+            "top8": "8 profitable stocks only (EMA 10/100, TP=6%, SL=3%)",
+            "all18": "18 S&P 500 stocks + SPX index (EMA 10/100, TP=6%, SL=3%)",
+            "index": "S&P 500 index SPX only (EMA 10/100, TP=6%, SL=3%)"
+        }
+        print(f"\nTrading mode: {mode_desc.get(args.mode, 'CUSTOM')}")
+        print(f"Symbols: {', '.join(symbols)}")
+        print(f"⚠️  This will trade on Alpaca paper account.")
         resp = input("Type START to continue: ")
         if resp.strip().upper() != "START":
             print("Aborted.")

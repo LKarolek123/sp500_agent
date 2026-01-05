@@ -14,18 +14,21 @@ A **production-grade algorithmic trading bot** monitoring 8 S&P 500 stocks 24/7 
 ## 🎯 Strategy at a Glance
 
 ### Symbols (Top 8 Profitable)
+
 ```
 TSLA (+30.87%)  DIS (+14.95%)  GOOGL (+14.10%)  JNJ (+11.37%)
 JPM (+7.97%)    LLY (+6.88%)   META (+4.92%)    AMZN (+1.20%)
 ```
 
 ### Signal Generation
+
 - **Fast EMA**: 10-period exponential moving average
 - **Slow EMA**: 100-period exponential moving average
 - **Entry Signal**: When Fast EMA crosses above/below Slow EMA
 - **Exit Strategy**: Take profit at +6% or Stop Loss at -3%
 
 ### Risk Management
+
 - **Max Concurrent Positions**: 5 trades
 - **Risk Per Trade**: 0.8% of equity (~$800 on $100k account)
 - **Position Sizing**: Dynamic based on ATR volatility
@@ -38,25 +41,26 @@ JPM (+7.97%)    LLY (+6.88%)   META (+4.92%)    AMZN (+1.20%)
 
 ### 2-Year Historical Performance (Jan 2024 - Dec 2025)
 
-| Metric | Value |
-|--------|-------|
-| **Average P&L** | +11.53% |
-| **Symbols Profitable** | 8/8 (100%) |
-| **Total Portfolio** | +92.27% |
-| **Avg Trades/Symbol** | 7.5 |
-| **Best Symbol** | TSLA: +30.87% (83.3% WR) |
-| **Worst Symbol** | AMZN: +1.20% (37.5% WR) |
+| Metric                 | Value                    |
+| ---------------------- | ------------------------ |
+| **Average P&L**        | +11.53%                  |
+| **Symbols Profitable** | 8/8 (100%)               |
+| **Total Portfolio**    | +92.27%                  |
+| **Avg Trades/Symbol**  | 7.5                      |
+| **Best Symbol**        | TSLA: +30.87% (83.3% WR) |
+| **Worst Symbol**       | AMZN: +1.20% (37.5% WR)  |
 
 ### Individual Symbol Performance
+
 ```
 TSLA   [83.3% WR]  +30.87%  STAR
-DIS    [50.0% WR]  +14.95%  
-GOOGL  [50.0% WR]  +14.10%  
-JNJ    [40.0% WR]  +11.37%  
-JPM    [50.0% WR]   +7.97%  
-LLY    [40.0% WR]   +6.88%  
-META   [33.3% WR]   +4.92%  
-AMZN   [37.5% WR]   +1.20%  
+DIS    [50.0% WR]  +14.95%
+GOOGL  [50.0% WR]  +14.10%
+JNJ    [40.0% WR]  +11.37%
+JPM    [50.0% WR]   +7.97%
+LLY    [40.0% WR]   +6.88%
+META   [33.3% WR]   +4.92%
+AMZN   [37.5% WR]   +1.20%
 ```
 
 ---
@@ -79,12 +83,14 @@ python test_all_18.py
 ### Live Trading Setup
 
 #### 1. Get Alpaca API Keys
+
 ```bash
 # Sign up for paper trading: https://app.alpaca.markets/signup
 # Get API keys from dashboard
 ```
 
 #### 2. Configure Environment
+
 ```bash
 # Create .env file
 echo "ALPACA_API_KEY=your_api_key" > .env
@@ -93,6 +99,7 @@ echo "ALPACA_BASE_URL=https://paper-api.alpaca.markets" >> .env
 ```
 
 #### 3. Run Locally
+
 ```bash
 # Test locally (interactive mode)
 python src/live/live_trader_multi.py
@@ -105,6 +112,7 @@ python src/live/live_trader_multi.py --symbols TSLA GOOGL AMZN
 ```
 
 #### 4. Deploy to Docker
+
 ```bash
 # Build image
 docker build -t sp500-bot:v2 .
@@ -155,7 +163,9 @@ sp500_agent/
 ## 🔧 Configuration
 
 ### Trading Parameters
+
 Edit `src/live/live_trader_multi.py`:
+
 ```python
 MultiSymbolTrader(
     fast_ma=10,              # Fast EMA period
@@ -169,7 +179,9 @@ MultiSymbolTrader(
 ```
 
 ### Backtest Parameters
+
 Edit `src/backtest/ema_backtest.py`:
+
 ```python
 backtest_ema_crossover(
     fast=10,        # Fast EMA
@@ -184,6 +196,7 @@ backtest_ema_crossover(
 ## 📡 Live Deployment (Hetzner)
 
 ### SSH Setup
+
 ```bash
 # Connect to VPS
 ssh root@46.224.197.25
@@ -212,6 +225,7 @@ docker logs -f sp500-bot
 ```
 
 ### Health Check
+
 ```bash
 # Check container status
 docker ps | grep sp500-bot
@@ -254,21 +268,27 @@ docker logs --timestamps sp500-bot
 ## 🧪 Testing
 
 ### Run Backtest on Top 8
+
 ```bash
 python test_top_8.py
 ```
+
 **Expected**: Average P&L +11.53%, 8/8 symbols profitable, TSLA as star performer
 
 ### Run Backtest on All 18
+
 ```bash
 python test_all_18.py
 ```
+
 **Expected**: Average P&L -0.74%, 8/18 symbols profitable (shows why we focus on top 8)
 
 ### Run EMA Strategy Comparison
+
 ```bash
 python test_ema_comparison.py
 ```
+
 **Expected**: EMA 10/100 outperforms EMA 20/100 on 4/5 test symbols
 
 ---
@@ -276,6 +296,7 @@ python test_ema_comparison.py
 ## 📝 API Integration
 
 ### Alpaca REST API v2
+
 - **Broker**: Alpaca Securities
 - **Account Type**: Paper Trading (simulated, no real money)
 - **Features Used**:
@@ -285,6 +306,7 @@ python test_ema_comparison.py
   - Account info (equity, buying power)
 
 ### Data Source
+
 - **Historical Data**: yfinance (Yahoo Finance)
 - **Live Data**: Alpaca REST API
 - **Timeframe**: Daily (1D) bars
@@ -307,15 +329,18 @@ python test_ema_comparison.py
 ## 🔍 Troubleshooting
 
 ### Bot Not Trading
+
 - Check if market is open (9:30 AM - 4:00 PM EST weekdays)
 - Verify API credentials in environment variables
 - Check Docker logs: `docker logs sp500-bot`
 
 ### High API Rate Limits
+
 - Increase `check_interval` (default 120 sec is safe)
 - Alpaca allows 200 requests per minute for paper accounts
 
 ### Data Fetch Errors
+
 - yfinance sometimes blocks large batch downloads
 - Try reducing number of symbols or adding delays
 - Use `python test_top_8.py` to test data fetching
@@ -324,14 +349,14 @@ python test_ema_comparison.py
 
 ## 📚 Files Reference
 
-| File | Purpose |
-|------|---------|
-| `alpaca_connector.py` | REST API wrapper (quotes, orders, account) |
+| File                   | Purpose                                     |
+| ---------------------- | ------------------------------------------- |
+| `alpaca_connector.py`  | REST API wrapper (quotes, orders, account)  |
 | `live_trader_multi.py` | Main bot (EMA signals, position management) |
-| `sp500_screener.py` | Symbol lists (profitable 8 + all 18) |
-| `ema_backtest.py` | Backtest engine (historical simulation) |
-| `Dockerfile` | Docker container definition |
-| `requirements.txt` | Python package dependencies |
+| `sp500_screener.py`    | Symbol lists (profitable 8 + all 18)        |
+| `ema_backtest.py`      | Backtest engine (historical simulation)     |
+| `Dockerfile`           | Docker container definition                 |
+| `requirements.txt`     | Python package dependencies                 |
 
 ---
 
@@ -364,6 +389,7 @@ Karol - S&P 500 Trading Bot (2026)
 ## 📞 Support
 
 For issues, questions, or improvements:
+
 1. Check the troubleshooting section above
 2. Review backtest results in `test_top_8.py` output
 3. Check Docker logs for runtime errors
