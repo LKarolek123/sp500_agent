@@ -49,6 +49,8 @@ def backtest_ema_crossover(
     slow: int = 100,
     tp_pct: float = 0.06,  # 6% take profit
     sl_pct: float = 0.03,  # 3% stop loss
+    use_reversal_exit: bool = True,
+    time_stop_days: int | None = None,
 ) -> Dict:
     """
     Backtest EMA crossover strategy.
@@ -119,10 +121,18 @@ def backtest_ema_crossover(
                     exit_price = sl
                     exit_reason = "SL"
 
-            # Or exit on signal reversal
-            if crossovers[idx] and signals[idx] != entry_signal:
+            # Or exit on signal reversal (optional)
+            if use_reversal_exit and crossovers[idx] and signals[idx] != entry_signal:
                 exit_price = closes[idx]
                 exit_reason = "Reversal"
+
+            # Or exit on time-stop (optional)
+            if time_stop_days is not None:
+                entry_date = pd.to_datetime(dates[entry_idx]).to_pydatetime()
+                curr_date = pd.to_datetime(dates[idx]).to_pydatetime()
+                if (curr_date - entry_date).days >= time_stop_days and exit_price is None:
+                    exit_price = closes[idx]
+                    exit_reason = f"TimeStop({time_stop_days}d)"
 
             if exit_price is not None:
                 pnl = (exit_price - entry_price) * entry_signal
@@ -173,7 +183,7 @@ def backtest_ema_crossover(
     }
 
 
-def run_backtest(symbols: List[str], lookback_days: int = 365):
+def run_backtest(symbols: List[str], lookback_days: int = 365, use_reversal_exit: bool = True, time_stop_days: int | None = None):
     """Run backtest for multiple symbols."""
     print("[DATA] EMA Crossover Strategy Backtest")
     print(f"Period: {lookback_days} days")
@@ -188,7 +198,7 @@ def run_backtest(symbols: List[str], lookback_days: int = 365):
             print("[FAIL]")
             continue
 
-        metrics = backtest_ema_crossover(df, fast=10, slow=100)
+        metrics = backtest_ema_crossover(df, fast=10, slow=100, use_reversal_exit=use_reversal_exit, time_stop_days=time_stop_days)
         if metrics is None:
             print("[SKIP]")
             continue
@@ -232,9 +242,16 @@ if __name__ == "__main__":
         help="Symbols to test (default: top 18 S&P 500)",
     )
     parser.add_argument("--lookback", type=int, default=365, help="Days to backtest")
+    parser.add_argument("--no-reversal-exit", action="store_true", help="Disable exit on signal reversal")
+    parser.add_argument("--time-stop-days", type=int, default=None, help="Enable time-stop after N days (e.g., 3)")
     args = parser.parse_args()
 
     symbols = args.symbols if args.symbols else get_sp500_symbols()
     symbols = [s for s in symbols if s != "SPX"]  # exclude index
 
-    results = run_backtest(symbols, lookback_days=args.lookback)
+    results = run_backtest(
+        symbols,
+        lookback_days=args.lookback,
+        use_reversal_exit=not args.no_reversal_exit,
+        time_stop_days=args.time_stop_days,
+    )
