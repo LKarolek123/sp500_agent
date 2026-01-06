@@ -293,6 +293,34 @@ python test_ema_comparison.py
 
 ---
 
+## 🔬 Version Comparison
+
+- Files: [src/backtest/compare_versions.py](src/backtest/compare_versions.py), [src/backtest/ema_backtest.py](src/backtest/ema_backtest.py)
+- Compares baseline v1 (no reversal exit, no time-stop) vs v2 (reversal exit + time-stop 3d).
+
+### Quick Run (top8+SPY, ~900 days)
+
+```bash
+python src/backtest/compare_versions.py --symbols TSLA DIS GOOGL JNJ JPM LLY META AMZN SPY --lookback 900
+```
+
+### Single Version Runs
+
+```bash
+# v1
+python src/backtest/ema_backtest.py --symbols TSLA DIS GOOGL JNJ JPM LLY META AMZN SPY --lookback 900 --no-reversal-exit
+
+# v2
+python src/backtest/ema_backtest.py --symbols TSLA DIS GOOGL JNJ JPM LLY META AMZN SPY --lookback 900 --time-stop-days 3
+```
+
+### Notes
+
+- In our latest run, v1 showed higher average P&L% on the last ~900 days for top8+SPY.
+- Results vary with period/symbols; tune parameters to preference.
+
+---
+
 ## 📝 API Integration
 
 ### Alpaca REST API v2
