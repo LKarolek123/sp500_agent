@@ -27,9 +27,10 @@ Run:
 import sys
 import time
 import math
+import json
 import pandas as pd
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, Dict, List
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -64,6 +65,11 @@ class MultiSymbolTrader:
         self.running = False
         # History: {symbol: [{'timestamp': ..., 'price': ...}, ...]}
         self.price_history: Dict[str, List[Dict]] = {s: [] for s in symbols}
+        # Track entries for time-stop and reversals
+        self.open_entries: Dict[str, Dict] = {}
+        self.state_path = Path(__file__).parent.parent.parent / "data" / "open_entries.json"
+        self.state_path.parent.mkdir(parents=True, exist_ok=True)
+        self._load_entries()
 
         print("Multi-Symbol Trader initialized")
         print(f"  Symbols: {len(symbols)} ({', '.join(symbols[:5])}...)")
@@ -96,6 +102,7 @@ class MultiSymbolTrader:
     def stop(self):
         self.running = False
         print("\n🛑 Bot stopped")
+        self._save_entries()
 
     def _trading_cycle(self):
         # Check market clock
@@ -130,6 +137,43 @@ class MultiSymbolTrader:
 
         # Generate signals for all symbols
         signals = self._generate_all_signals()
+
+        # Handle reversals for open positions first
+        if open_positions:
+            for pos in open_positions:
+                symbol = pos["symbol"]
+                current_side = pos.get("side", "long")  # 'long' or 'short'
+                desired = signals.get(symbol, 0)
+                # long -> reverse if desired == -1; short -> reverse if desired == 1
+                if (current_side == "long" and desired == -1) or (current_side == "short" and desired == 1):
+                    print(f"  🔄 Reverse signal for {symbol}: closing {current_side} and opening {'long' if desired==1 else 'short'}")
+                    closed = self.alpaca.close_position(symbol)
+                    if closed:
+                        self.open_entries.pop(symbol, None)
+                        price = self.price_history[symbol][-1]["price"] if self.price_history[symbol] else None
+                        if price is not None:
+                            self._execute_signal(symbol, desired, price)
+                    else:
+                        print(f"  ❌ Failed to close position for {symbol} on reverse signal")
+
+        # Apply time-stop: close positions older than 3 days
+        now_ts = datetime.now()
+        for symbol, meta in list(self.open_entries.items()):
+            entry_time = meta.get("entry_time")
+            if isinstance(entry_time, str):
+                try:
+                    entry_time = datetime.fromisoformat(entry_time)
+                except Exception:
+                    entry_time = None
+            if entry_time and now_ts - entry_time >= timedelta(days=3):
+                print(f"  ⏳ Time-stop reached for {symbol} (3 days). Closing position.")
+                closed = self.alpaca.close_position(symbol)
+                if closed:
+                    self.open_entries.pop(symbol, None)
+                else:
+                    print(f"  ❌ Failed to close position for {symbol} on time-stop")
+        # Persist any changes
+        self._save_entries()
         
         # Filter: only symbols with strong signal and enough history
         candidates = [
@@ -234,8 +278,33 @@ class MultiSymbolTrader:
         )
         if order:
             print(f"  ✅ Order submitted: {order.get('id')}")
+            # Track entry for time-stop
+            self.open_entries[symbol] = {
+                "side": side,
+                "entry_time": datetime.now().isoformat(),
+                "entry_price": price,
+                "order_id": order.get("id")
+            }
+            self._save_entries()
         else:
             print(f"  ❌ Order failed for {symbol}")
+
+    def _load_entries(self):
+        try:
+            if self.state_path.exists():
+                with open(self.state_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    if isinstance(data, dict):
+                        self.open_entries = data
+        except Exception as e:
+            print(f"Warning: could not load open entries state: {e}")
+
+    def _save_entries(self):
+        try:
+            with open(self.state_path, "w", encoding="utf-8") as f:
+                json.dump(self.open_entries, f)
+        except Exception as e:
+            print(f"Warning: could not save open entries state: {e}")
 
 
 if __name__ == "__main__":
