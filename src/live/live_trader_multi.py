@@ -44,7 +44,7 @@ class MultiSymbolTrader:
         self,
         alpaca: AlpacaConnector,
         symbols: List[str],
-        max_positions: int = 5,
+        max_positions: int = 8,
         fast_ma: int = 10,
         slow_ma: int = 100,
         tp_atr_mult: float = 5.0,
@@ -144,9 +144,9 @@ class MultiSymbolTrader:
                 symbol = pos["symbol"]
                 current_side = pos.get("side", "long")  # 'long' or 'short'
                 desired = signals.get(symbol, 0)
-                # long -> reverse if desired == -1; short -> reverse if desired == 1
+                # Reversal only on completed daily bar: signals computed from daily closes (see _generate_all_signals)
                 if (current_side == "long" and desired == -1) or (current_side == "short" and desired == 1):
-                    print(f"  🔄 Reverse signal for {symbol}: closing {current_side} and opening {'long' if desired==1 else 'short'}")
+                    print(f"  🔄 Reverse signal for {symbol}: closing {current_side} and opening {'long' if desired==1 else 'short'} (daily close)" )
                     closed = self.alpaca.close_position(symbol)
                     if closed:
                         self.open_entries.pop(symbol, None)
@@ -156,22 +156,37 @@ class MultiSymbolTrader:
                     else:
                         print(f"  ❌ Failed to close position for {symbol} on reverse signal")
 
-        # Apply time-stop: close positions older than 3 days
+        # Apply conditional time-stop rules
         now_ts = datetime.now()
         for symbol, meta in list(self.open_entries.items()):
             entry_time = meta.get("entry_time")
+            entry_price = meta.get("entry_price")
+            side = meta.get("side", "buy")
             if isinstance(entry_time, str):
                 try:
                     entry_time = datetime.fromisoformat(entry_time)
                 except Exception:
                     entry_time = None
-            if entry_time and now_ts - entry_time >= timedelta(days=3):
-                print(f"  ⏳ Time-stop reached for {symbol} (3 days). Closing position.")
-                closed = self.alpaca.close_position(symbol)
-                if closed:
-                    self.open_entries.pop(symbol, None)
-                else:
-                    print(f"  ❌ Failed to close position for {symbol} on time-stop")
+            price_now = self.price_history[symbol][-1]["price"] if self.price_history[symbol] else None
+            if entry_time and price_now:
+                days_open = (now_ts - entry_time).days
+                pnl_pct = (price_now - entry_price) / entry_price * 100 if side == "buy" else (entry_price - price_now) / entry_price * 100
+                # If position is losing for 3+ days
+                if days_open >= 3 and pnl_pct <= 0:
+                    print(f"  ⏳ Time-stop: {symbol} losing {pnl_pct:.2f}% for {days_open} days -> closing")
+                    closed = self.alpaca.close_position(symbol)
+                    if closed:
+                        self.open_entries.pop(symbol, None)
+                    else:
+                        print(f"  ❌ Failed to close position for {symbol} on loss time-stop")
+                # If after 7+ days profit is below 2%
+                elif days_open >= 7 and pnl_pct < 2.0:
+                    print(f"  ⏳ Time-stop: {symbol} <2% after {days_open} days -> closing")
+                    closed = self.alpaca.close_position(symbol)
+                    if closed:
+                        self.open_entries.pop(symbol, None)
+                    else:
+                        print(f"  ❌ Failed to close position for {symbol} on flat time-stop")
         # Persist any changes
         self._save_entries()
         
@@ -211,7 +226,7 @@ class MultiSymbolTrader:
         return None
 
     def _generate_all_signals(self) -> Dict[str, int]:
-        """Generate signal for each symbol: 1=long, -1=short, 0=neutral."""
+        """Generate signal for each symbol on daily closes: 1=long, -1=short, 0=neutral."""
         signals = {}
         for symbol in self.symbols:
             history = self.price_history[symbol]
@@ -220,6 +235,12 @@ class MultiSymbolTrader:
                 continue
 
             df = pd.DataFrame(history)
+            df["ts"] = pd.to_datetime(df["timestamp"])
+            df = df.set_index("ts").resample("1D").last().dropna()
+            if len(df) < max(self.slow_ma, 20) + 1:
+                signals[symbol] = 0
+                continue
+
             df["Close"] = df["price"]
             ema_fast = df["Close"].ewm(span=self.fast_ma, adjust=False).mean()
             ema_slow = df["Close"].ewm(span=self.slow_ma, adjust=False).mean()
@@ -252,10 +273,16 @@ class MultiSymbolTrader:
         if not acc:
             return
         equity = float(acc.get("equity", 0))
+        buying_power = float(acc.get("buying_power", equity))
         risk_dollars = equity * self.risk_per_trade
         stop_distance = atr * self.sl_atr_mult
         qty = math.floor(risk_dollars / stop_distance)
         qty = max(1, qty)
+
+        est_cost = price * qty
+        if est_cost > buying_power * 0.98:
+            print(f"  ⚠️ Insufficient buying power for {symbol}: need {est_cost:.2f}, have {buying_power:.2f}")
+            return
 
         side = "buy" if signal == 1 else "sell"
         if signal == 1:
@@ -323,7 +350,7 @@ if __name__ == "__main__":
         default=None,
         help="Custom symbol list (overrides --mode)",
     )
-    parser.add_argument("--max-positions", type=int, default=5, help="Max concurrent positions")
+    parser.add_argument("--max-positions", type=int, default=8, help="Max concurrent positions")
     parser.add_argument("--check-interval", type=int, default=120, help="Seconds between checks")
     parser.add_argument("--fast", type=int, default=10, help="Fast EMA period")
     parser.add_argument("--slow", type=int, default=100, help="Slow EMA period")
