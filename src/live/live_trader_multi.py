@@ -334,11 +334,11 @@ class MultiSymbolTrader:
             print(f"  ⚠️ {symbol} score {score} < 40, skipping")
             return
         elif score < 60:
-            risk_pct = 0.004  # 0.4% micro
+            risk_pct = 0.0075  # 0.75% micro
         elif score < 80:
-            risk_pct = 0.008  # 0.8% normal
+            risk_pct = 0.015  # 1.5% normal
         else:
-            risk_pct = 0.012  # 1.2% aggressive
+            risk_pct = 0.0225  # 2.25% aggressive
         
         risk_dollars = equity * risk_pct
         risk_dollars = equity * self.risk_per_trade

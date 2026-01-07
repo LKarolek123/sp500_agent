@@ -171,20 +171,20 @@ def score_trade(
     return int(score)
 
 
-def risk_sizing_from_score(score: int, equity: float, base_risk: float = 0.008) -> float:
+def risk_sizing_from_score(score: int, equity: float, base_risk: float = 0.015) -> float:
     """
     Adjust risk based on score confidence.
     
     score < 40: skip
-    40-59: 0.4% risk
-    60-79: 0.8% risk (base)
-    80-100: 1.2% risk
+    40-59: 0.75% risk
+    60-79: 1.5% risk (base)
+    80-100: 2.25% risk
     """
     if score < 40:
         return 0.0  # Skip
     elif score < 60:
-        return equity * 0.004
+        return equity * 0.0075
     elif score < 80:
-        return equity * base_risk  # 0.8%
+        return equity * base_risk  # 1.5%
     else:
-        return equity * 0.012  # 1.2%
+        return equity * 0.0225  # 2.25%
