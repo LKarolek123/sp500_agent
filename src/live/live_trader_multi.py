@@ -48,7 +48,7 @@ class MultiSymbolTrader:
         self,
         alpaca: AlpacaConnector,
         symbols: List[str],
-        max_positions: int = 8,
+        max_positions: int = 10,
         fast_ma: int = 10,
         slow_ma: int = 100,
         tp_atr_mult: float = 5.0,

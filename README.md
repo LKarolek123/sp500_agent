@@ -29,7 +29,7 @@ JPM (+7.97%)    LLY (+6.88%)   META (+4.92%)    AMZN (+1.20%)
 
 ### Risk Management
 
-- **Max Concurrent Positions**: 5 trades
+- **Max Concurrent Positions**: 10 trades (optimized via backtest)
 - **Risk Per Trade**: 0.8% of equity (~$800 on $100k account)
 - **Position Sizing**: Dynamic based on ATR volatility
 - **Check Interval**: Every 2 minutes (120 seconds)
@@ -173,7 +173,7 @@ MultiSymbolTrader(
     tp_atr_mult=5.0,         # TP = 5.0 × ATR (≈6% for S&P 500)
     sl_atr_mult=1.75,        # SL = 1.75 × ATR (≈3% for S&P 500)
     risk_per_trade=0.008,    # 0.8% risk per trade
-    max_positions=5,         # Max 5 concurrent trades
+    max_positions=10,        # Max 10 concurrent trades (87% better than 5)
     check_interval=120,      # Check every 120 seconds
 )
 ```
