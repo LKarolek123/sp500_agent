@@ -10,6 +10,13 @@ Uses Optuna to find optimal weights for:
 
 Constraint: weights sum to 90 (10 reserved for future indicators).
 
+OPTIMAL WEIGHTS (from 50 trials, all successful):
+  EMA:  33.57%
+  RSI:  24.04%
+  MACD:  8.59%
+  SR:   19.79%
+  VOL:   4.01%
+
 Run:
     python optimize_weights.py --symbols TSLA DIS GOOGL JNJ JPM LLY META AMZN SPY --trials 100
 """

@@ -22,9 +22,10 @@ from src.live.sp500_screener import get_sp500_symbols
 
 
 def download_data(symbol: str, days: int = 365) -> pd.DataFrame:
-    """Download OHLCV data from yfinance."""
+    """Download OHLCV data from yfinance with retry logic."""
     try:
         import yfinance as yf
+        import time
     except ImportError:
         print("Error: yfinance not installed. Run: pip install yfinance")
         return None
@@ -32,15 +33,41 @@ def download_data(symbol: str, days: int = 365) -> pd.DataFrame:
     end = datetime.now()
     start = end - timedelta(days=days)
 
-    df = yf.download(symbol, start=start, end=end, progress=False, interval="1d")
-    if df.empty:
-        print(f"[NO_DATA] {symbol}")
-        return None
-
-    df = df.reset_index()
-    df = df[["Date", "Open", "High", "Low", "Close", "Volume"]].copy()
-    df["Close"] = df["Close"].astype(float)
-    return df
+    # Retry up to 3 times with exponential backoff
+    for attempt in range(3):
+        try:
+            df = yf.download(symbol, start=start, end=end, progress=False, interval="1d")
+            
+            if df.empty:
+                print(f"[NO_DATA] {symbol}")
+                return None
+            
+            # Handle MultiIndex columns (yfinance quirk)
+            if isinstance(df.columns, pd.MultiIndex):
+                df.columns = df.columns.get_level_values(0)
+            
+            df = df.reset_index()
+            
+            # Check if required columns exist
+            required = ["Date", "Open", "High", "Low", "Close", "Volume"]
+            missing = [col for col in required if col not in df.columns]
+            if missing:
+                print(f"[MISSING_COLS] {symbol}: {missing}")
+                return None
+            
+            df = df[required].copy()
+            df["Close"] = df["Close"].astype(float)
+            return df
+            
+        except Exception as e:
+            if attempt < 2:
+                time.sleep(0.5 * (attempt + 1))  # 0.5s, 1s backoff
+                continue
+            else:
+                print(f"[DOWNLOAD_ERROR] {symbol}: {str(e)}")
+                return None
+    
+    return None
 
 
 def backtest_ema_crossover(

@@ -104,69 +104,69 @@ def score_trade(
     """
     score = 0
     
-    # EMA (35%)
+    # EMA (33.57%) - ML optimized from 50 trials
     if ema_signal != 0:
-        ema_score = 35  # EMA crossover is the main signal
+        ema_score = 33.57  # EMA crossover is the main signal
     else:
         ema_score = 0
     score += ema_score
     
-    # RSI (20%)
+    # RSI (24.04%) - ML optimized from 50 trials
     if ema_signal == 1:
         # Long: want RSI 30-50 (not overbought, momentum building)
         if rsi < 30:
-            rsi_score = 10  # Oversold, reversal candidate
+            rsi_score = 12.02  # Oversold, reversal candidate
         elif rsi < 50:
-            rsi_score = 20  # Perfect zone
+            rsi_score = 24.04  # Perfect zone
         elif rsi < 70:
-            rsi_score = 10  # Momentum but approaching overbought
+            rsi_score = 12.02  # Momentum but approaching overbought
         else:
             rsi_score = 0  # Overbought, avoid
     elif ema_signal == -1:
         # Short: want RSI 50-70 (not oversold, momentum building down)
         if rsi > 70:
-            rsi_score = 10  # Overbought, reversal candidate
+            rsi_score = 12.02  # Overbought, reversal candidate
         elif rsi > 50:
-            rsi_score = 20  # Perfect zone
+            rsi_score = 24.04  # Perfect zone
         elif rsi > 30:
-            rsi_score = 10  # Momentum but approaching oversold
+            rsi_score = 12.02  # Momentum but approaching oversold
         else:
             rsi_score = 0  # Oversold, avoid
     else:
         rsi_score = 0
     score += rsi_score
     
-    # MACD (20%)
+    # MACD (8.59%) - ML optimized from 50 trials
     if ema_signal == 1 and macd_hist > 0:
-        macd_score = 20  # MACD positive, uptrend confirmed
+        macd_score = 8.59  # MACD positive, uptrend confirmed
     elif ema_signal == -1 and macd_hist < 0:
-        macd_score = 20  # MACD negative, downtrend confirmed
+        macd_score = 8.59  # MACD negative, downtrend confirmed
     elif ema_signal != 0:
-        macd_score = 5  # Signal present but MACD disagrees
+        macd_score = 2.15  # Signal present but MACD disagrees
     else:
         macd_score = 0
     score += macd_score
     
-    # S/R (20%)
+    # S/R (19.79%) - ML optimized from 50 trials
     if sr_signal == ema_signal and sr_signal != 0:
-        sr_score = 20  # Strong: EMA and S/R aligned
+        sr_score = 19.79  # Strong: EMA and S/R aligned
     elif sr_signal == 0 and ema_signal != 0:
-        sr_score = 10  # Weak: EMA signal but S/R neutral
+        sr_score = 9.90  # Weak: EMA signal but S/R neutral
     elif sr_signal != ema_signal and sr_signal != 0:
         sr_score = 0  # Conflict: avoid
     else:
         sr_score = 0
     score += sr_score
     
-    # Volume (5%)
+    # Volume (4.01%) - ML optimized from 50 trials
     if volume_ratio >= 1.0:
-        vol_score = 5  # Above average volume
+        vol_score = 4.01  # Above average volume
     else:
         vol_score = 0  # Below average, weak signal
     score += vol_score
     
     if verbose:
-        print(f"    Score breakdown: EMA={ema_score}, RSI={rsi_score}, MACD={macd_score}, S/R={sr_score}, Vol={vol_score} → Total={score}/100")
+        print(f"    Score breakdown: EMA={ema_score:.1f}, RSI={rsi_score:.1f}, MACD={macd_score:.1f}, S/R={sr_score:.1f}, Vol={vol_score:.1f} → Total={score:.0f}/100")
     
     return int(score)
 
