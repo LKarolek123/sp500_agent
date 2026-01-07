@@ -37,6 +37,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.live.alpaca_connector import AlpacaConnector
 from src.live.sp500_screener import get_sp500_symbols, get_profitable_8_symbols
+from src.live.technical_indicators import (
+    calculate_rsi, calculate_macd, calculate_support_resistance,
+    detect_support_resistance_signal, calculate_volume_ma, score_trade
+)
 
 
 class MultiSymbolTrader:
@@ -51,6 +55,7 @@ class MultiSymbolTrader:
         sl_atr_mult: float = 1.75,
         risk_per_trade: float = 0.008,
         check_interval: int = 60,
+        use_indicators: bool = False,
     ):
         self.alpaca = alpaca
         self.symbols = symbols
@@ -61,6 +66,7 @@ class MultiSymbolTrader:
         self.sl_atr_mult = sl_atr_mult
         self.risk_per_trade = risk_per_trade
         self.check_interval = check_interval
+        self.use_indicators = use_indicators
 
         self.running = False
         # History: {symbol: [{'timestamp': ..., 'price': ...}, ...]}
@@ -192,9 +198,13 @@ class MultiSymbolTrader:
         
         # Filter: only symbols with strong signal and enough history
         candidates = [
-            (symbol, signal) for symbol, signal in signals.items()
+            (symbol, signal, score) for symbol, (signal, score) in signals.items()
             if signal != 0 and symbol not in open_symbols
         ]
+        
+        # Filter by score if using indicators
+        if self.use_indicators:
+            candidates = [(s, sig, sc) for s, sig, sc in candidates if sc >= 40]
         
         if not candidates:
             print("  No new signals")
@@ -207,12 +217,12 @@ class MultiSymbolTrader:
             return
 
         candidates = candidates[:slots_available]
-        print(f"  🎯 New signals: {[(s, sig) for s, sig in candidates]}")
+        print(f"  🎯 New signals: {[(s, sig, sc) for s, sig, sc in candidates]}")
 
-        for symbol, signal in candidates:
+        for symbol, signal, score in candidates:
             price = self.price_history[symbol][-1]["price"] if self.price_history[symbol] else None
             if price:
-                self._execute_signal(symbol, signal, price)
+                self._execute_signal(symbol, signal, price, score=score)
 
     def _extract_price(self, quote: Dict) -> Optional[float]:
         bid = quote.get("bidprice") or quote.get("bp")
@@ -225,23 +235,34 @@ class MultiSymbolTrader:
             return float(bid)
         return None
 
-    def _generate_all_signals(self) -> Dict[str, int]:
-        """Generate signal for each symbol on daily closes: 1=long, -1=short, 0=neutral."""
+    def _generate_all_signals(self) -> Dict[str, Tuple[int, int]]:
+        """
+        Generate signal for each symbol on daily closes.
+        
+        Returns: {symbol: (signal, score)} where:
+          - signal: 1=long, -1=short, 0=neutral
+          - score: 0-100 (confidence score; <40 = skip)
+        """
         signals = {}
         for symbol in self.symbols:
             history = self.price_history[symbol]
             if len(history) < max(self.slow_ma, 20) + 1:
-                signals[symbol] = 0
+                signals[symbol] = (0, 0)
                 continue
 
             df = pd.DataFrame(history)
             df["ts"] = pd.to_datetime(df["timestamp"])
             df = df.set_index("ts").resample("1D").last().dropna()
             if len(df) < max(self.slow_ma, 20) + 1:
-                signals[symbol] = 0
+                signals[symbol] = (0, 0)
                 continue
 
             df["Close"] = df["price"]
+            df["High"] = df.get("high", df["Close"])
+            df["Low"] = df.get("low", df["Close"])
+            df["Volume"] = df.get("volume", 0)
+            
+            # EMA signal
             ema_fast = df["Close"].ewm(span=self.fast_ma, adjust=False).mean()
             ema_slow = df["Close"].ewm(span=self.slow_ma, adjust=False).mean()
 
@@ -249,14 +270,48 @@ class MultiSymbolTrader:
             fast_prev, slow_prev = ema_fast.iloc[-2], ema_slow.iloc[-2]
 
             if fast_prev <= slow_prev and fast_now > slow_now:
-                signals[symbol] = 1  # long
+                ema_signal = 1  # long
             elif fast_prev >= slow_prev and fast_now < slow_now:
-                signals[symbol] = -1  # short
+                ema_signal = -1  # short
             else:
-                signals[symbol] = 0
+                ema_signal = 0
+            
+            # If no EMA signal, skip indicators too
+            if ema_signal == 0:
+                signals[symbol] = (0, 0)
+                continue
+            
+            # Calculate indicators (only if use_indicators enabled)
+            score = 0
+            if self.use_indicators:
+                rsi = calculate_rsi(df["Close"], period=14).iloc[-1]
+                macd_line, signal_line, histogram = calculate_macd(df["Close"])
+                macd_hist = histogram.iloc[-1]
+                support, resistance = calculate_support_resistance(df, lookback=20)
+                sr_signal = detect_support_resistance_signal(df["Close"].iloc[-1], support, resistance)
+                
+                volume_ma = calculate_volume_ma(df["Volume"], period=20).iloc[-1]
+                current_vol = df["Volume"].iloc[-1] if len(df["Volume"]) > 0 else 1
+                volume_ratio = current_vol / (volume_ma + 1e-8)
+                
+                score = score_trade(
+                    df=df,
+                    ema_signal=ema_signal,
+                    rsi=rsi,
+                    macd_hist=macd_hist,
+                    sr_signal=sr_signal,
+                    volume_ratio=volume_ratio,
+                    verbose=False
+                )
+                signals[symbol] = (ema_signal, score)
+            else:
+                # Without indicators, just use EMA with default confidence
+                score = 70  # assume moderate confidence
+                signals[symbol] = (ema_signal, score)
+        
         return signals
 
-    def _execute_signal(self, symbol: str, signal: int, price: float):
+    def _execute_signal(self, symbol: str, signal: int, price: float, score: int = 70):
         history = self.price_history[symbol]
         df = pd.DataFrame(history)
         df["Close"] = df["price"]
@@ -268,12 +323,24 @@ class MultiSymbolTrader:
         if pd.isna(atr) or atr <= 0:
             atr = price * 0.02
 
-        # Position sizing
+        # Position sizing with score-adjusted risk
         acc = self.alpaca.get_account()
         if not acc:
             return
         equity = float(acc.get("equity", 0))
-        buying_power = float(acc.get("buying_power", equity))
+        
+        # Adjust risk based on score
+        if score < 40:
+            print(f"  ⚠️ {symbol} score {score} < 40, skipping")
+            return
+        elif score < 60:
+            risk_pct = 0.004  # 0.4% micro
+        elif score < 80:
+            risk_pct = 0.008  # 0.8% normal
+        else:
+            risk_pct = 0.012  # 1.2% aggressive
+        
+        risk_dollars = equity * risk_pct
         risk_dollars = equity * self.risk_per_trade
         stop_distance = atr * self.sl_atr_mult
         qty = math.floor(risk_dollars / stop_distance)
@@ -295,7 +362,7 @@ class MultiSymbolTrader:
         tp_price = round(tp_price, 2)
         sl_price = round(sl_price, 2)
 
-        print(f"  🚀 {symbol} | {side.upper()} {qty} @ {price:.2f} | TP: {tp_price} | SL: {sl_price}")
+        print(f"  🚀 {symbol} | {side.upper()} {qty} @ {price:.2f} | TP: {tp_price} | SL: {sl_price} | Score: {score}/100")
         order = self.alpaca.submit_bracket_order(
             symbol=symbol,
             qty=qty,
@@ -310,7 +377,8 @@ class MultiSymbolTrader:
                 "side": side,
                 "entry_time": datetime.now().isoformat(),
                 "entry_price": price,
-                "order_id": order.get("id")
+                "order_id": order.get("id"),
+                "score": score
             }
             self._save_entries()
         else:
@@ -354,6 +422,7 @@ if __name__ == "__main__":
     parser.add_argument("--check-interval", type=int, default=120, help="Seconds between checks")
     parser.add_argument("--fast", type=int, default=10, help="Fast EMA period")
     parser.add_argument("--slow", type=int, default=100, help="Slow EMA period")
+    parser.add_argument("--use-indicators", action="store_true", help="Enable RSI/MACD/S&R filters with scoring")
     parser.add_argument("--auto-start", action="store_true", help="Skip confirmation prompt")
     args = parser.parse_args()
 
@@ -394,5 +463,6 @@ if __name__ == "__main__":
         fast_ma=args.fast,
         slow_ma=args.slow,
         check_interval=args.check_interval,
+        use_indicators=args.use_indicators,
     )
     trader.start()
