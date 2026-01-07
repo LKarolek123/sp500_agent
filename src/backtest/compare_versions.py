@@ -59,5 +59,5 @@ if __name__ == "__main__":
     v2_score = avg(v2, "total_pnl_pct") + 0.5 * avg(v2, "win_rate")
 
     print("\n" + "-" * 80)
-    print(f"Preference score → V1: {v1_score:.2f} vs V2: {v2_score:.2f}")
+    print(f"Preference score: V1={v1_score:.2f} vs V2={v2_score:.2f}")
     print("Pick higher score; you can tailor weights as needed.")
