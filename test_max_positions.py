@@ -27,7 +27,8 @@ def backtest_portfolio_with_limit(
     max_positions: int = None,
     min_score: int = 40,
     tp_pct: float = 0.06,
-    sl_pct: float = 0.03
+    sl_pct: float = 0.03,
+    initial_equity: float = 100000.0
 ) -> dict:
     """
     Backtest portfolio with max concurrent positions limit.
@@ -39,6 +40,7 @@ def backtest_portfolio_with_limit(
         min_score: Minimum indicator score to enter
         tp_pct: Take profit percentage
         sl_pct: Stop loss percentage
+        initial_equity: Starting portfolio value
     
     Returns:
         dict with metrics: total_trades, total_pnl_pct, win_rate, avg_holding_days
@@ -117,7 +119,7 @@ def backtest_portfolio_with_limit(
         data[symbol] = df
     
     if not data:
-        return {"total_trades": 0, "total_pnl_pct": 0.0, "win_rate": 0.0, "avg_holding_days": 0.0}
+        return {"total_trades": 0, "total_pnl_pct": 0.0, "win_rate": 0.0, "avg_holding_days": 0.0, "max_concurrent": 0}
     
     # Merge all dates
     all_dates = set()
@@ -125,14 +127,16 @@ def backtest_portfolio_with_limit(
         all_dates.update(df["Date"].tolist())
     all_dates = sorted(all_dates)
     
-    # Portfolio simulation
-    open_positions = []  # [(symbol, entry_date, entry_price, entry_signal)]
+    # Portfolio simulation with equity tracking
+    open_positions = []  # [(symbol, entry_date, entry_price, entry_signal, position_size)]
     completed_trades = []
+    equity_curve = [initial_equity]
+    current_equity = initial_equity
     
     for date in all_dates:
         # Check exits for open positions
         for pos in open_positions[:]:
-            symbol, entry_date, entry_price, entry_signal = pos
+            symbol, entry_date, entry_price, entry_signal, position_size = pos
             df = data[symbol]
             current_bar = df[df["Date"] == date]
             
@@ -162,12 +166,16 @@ def backtest_portfolio_with_limit(
                     reason = "SL"
             
             if exit_triggered:
+                pnl_dollars = position_size * pnl_pct
+                current_equity += pnl_dollars
+                
                 holding_days = (date - entry_date).days
                 completed_trades.append({
                     "symbol": symbol,
                     "entry_date": entry_date,
                     "exit_date": date,
                     "pnl_pct": pnl_pct,
+                    "pnl_dollars": pnl_dollars,
                     "holding_days": holding_days,
                     "reason": reason
                 })
@@ -192,8 +200,13 @@ def backtest_portfolio_with_limit(
                 if max_positions is not None and len(open_positions) >= max_positions:
                     continue
                 
+                # Calculate position size (1.5% risk)
+                position_size = current_equity * 0.015
+                
                 # Enter position
-                open_positions.append((symbol, date, row["Close"], row["EMA_signal"]))
+                open_positions.append((symbol, date, row["Close"], row["EMA_signal"], position_size))
+        
+        equity_curve.append(current_equity)
     
     # Metrics
     if len(completed_trades) == 0:
@@ -202,7 +215,11 @@ def backtest_portfolio_with_limit(
     total_trades = len(completed_trades)
     wins = sum(1 for t in completed_trades if t["pnl_pct"] > 0)
     win_rate = wins / total_trades * 100
-    total_pnl_pct = sum(t["pnl_pct"] for t in completed_trades) * 100
+    
+    # REALISTIC P&L: (final equity - initial equity) / initial equity
+    total_pnl_dollars = sum(t["pnl_dollars"] for t in completed_trades)
+    total_pnl_pct = (total_pnl_dollars / initial_equity) * 100
+    
     avg_holding_days = sum(t["holding_days"] for t in completed_trades) / total_trades
     
     # Calculate max concurrent positions ever reached
