@@ -195,7 +195,10 @@ def backtest_ema_crossover(
     else:
         sharpe = 0.0
 
-    total_pnl_pct = (total_pnl / float(df.iloc[0]["Close"])) * 100
+    # Calculate P&L% using realistic equity curve (instead of dividing by first price)
+    # Assumes starting with $100,000 account
+    initial_equity = 100000.0
+    total_pnl_pct = (total_pnl / initial_equity) * 100
 
     return {
         "total_trades": int(total_trades),
