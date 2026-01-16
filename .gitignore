@@ -46,3 +46,8 @@ docs/klucz.txt
 config/alpaca_config.json
 .env
 docs/klucz.key
+
+# Social media posts (ignore drafts)
+X_POST*.md
+LINKEDIN_POST*.md
+TWITTER_POST*.md
