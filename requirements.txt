@@ -25,6 +25,10 @@ yfinance>=0.2.0
 jupyter>=1.0.0
 ipykernel>=6.25.0
 
+# Live Trading
+alpaca-trade-api>=0.70.0
+python-telegram-bot>=20.0
+
 # Live Trading (XTB API)
 # Note: XTB uses raw TCP/WebSocket, no official pip package
 # Connection handled by src/live/xtb_connector.py

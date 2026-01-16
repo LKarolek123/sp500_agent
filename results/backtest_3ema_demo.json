@@ -1,0 +1,133 @@
+{
+  "timestamp": "2026-01-16T21:04:13.870786",
+  "summary": {
+    "total_trades": 30872,
+    "avg_win_rate": 54.03,
+    "total_profit": 20889.44,
+    "avg_profit_pct": 52.22
+  },
+  "per_stock": [
+    {
+      "symbol": "TSLA",
+      "total_trades": 7718,
+      "wins": 4170,
+      "losses": 3548,
+      "win_rate": 54.03,
+      "profit": 5222.36,
+      "profit_percent": 52.22,
+      "final_equity": 15222.36
+    },
+    {
+      "symbol": "AMZN",
+      "total_trades": 7718,
+      "wins": 4170,
+      "losses": 3548,
+      "win_rate": 54.03,
+      "profit": 5222.36,
+      "profit_percent": 52.22,
+      "final_equity": 15222.36
+    },
+    {
+      "symbol": "META",
+      "total_trades": 7718,
+      "wins": 4170,
+      "losses": 3548,
+      "win_rate": 54.03,
+      "profit": 5222.36,
+      "profit_percent": 52.22,
+      "final_equity": 15222.36
+    },
+    {
+      "symbol": "GOOGL",
+      "total_trades": 7718,
+      "wins": 4170,
+      "losses": 3548,
+      "win_rate": 54.03,
+      "profit": 5222.36,
+      "profit_percent": 52.22,
+      "final_equity": 15222.36
+    }
+  ],
+  "trades_sample": [
+    {
+      "symbol": "TSLA",
+      "entry_time": "2024-01-09 10:00:00",
+      "entry_price": 95.12854172384584,
+      "exit_price": 96.140521102775,
+      "type": "LONG",
+      "pnl": 101.2
+    },
+    {
+      "symbol": "TSLA",
+      "entry_time": "2024-01-09 11:00:00",
+      "entry_price": 96.140521102775,
+      "exit_price": 94.82563664545802,
+      "type": "LONG",
+      "pnl": -131.49
+    },
+    {
+      "symbol": "TSLA",
+      "entry_time": "2024-01-09 12:00:00",
+      "entry_price": 94.82563664545802,
+      "exit_price": 94.93372791220244,
+      "type": "LONG",
+      "pnl": 10.81
+    },
+    {
+      "symbol": "TSLA",
+      "entry_time": "2024-01-09 15:00:00",
+      "entry_price": 94.93372791220244,
+      "exit_price": 95.43217525412955,
+      "type": "LONG",
+      "pnl": 49.84
+    },
+    {
+      "symbol": "TSLA",
+      "entry_time": "2024-01-09 16:00:00",
+      "entry_price": 95.43217525412955,
+      "exit_price": 99.11846393988762,
+      "type": "LONG",
+      "pnl": 368.63
+    },
+    {
+      "symbol": "TSLA",
+      "entry_time": "2024-01-09 17:00:00",
+      "entry_price": 99.11846393988762,
+      "exit_price": 99.69423369125926,
+      "type": "LONG",
+      "pnl": 57.58
+    },
+    {
+      "symbol": "TSLA",
+      "entry_time": "2024-01-09 18:00:00",
+      "entry_price": 99.69423369125926,
+      "exit_price": 100.83629657766768,
+      "type": "LONG",
+      "pnl": 114.21
+    },
+    {
+      "symbol": "TSLA",
+      "entry_time": "2024-01-09 19:00:00",
+      "entry_price": 100.83629657766768,
+      "exit_price": 101.80836025491763,
+      "type": "LONG",
+      "pnl": 97.21
+    },
+    {
+      "symbol": "TSLA",
+      "entry_time": "2024-01-09 20:00:00",
+      "entry_price": 101.80836025491763,
+      "exit_price": 102.48171184274155,
+      "type": "LONG",
+      "pnl": 67.34
+    },
+    {
+      "symbol": "TSLA",
+      "entry_time": "2024-01-09 21:00:00",
+      "entry_price": 102.48171184274155,
+      "exit_price": 102.16886669510471,
+      "type": "LONG",
+      "pnl": -31.28
+    }
+  ]
+}
