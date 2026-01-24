@@ -6,29 +6,32 @@ Real-world backtest completed with actual S&P 500 data!
 
 ## Quick Results
 
-| Metric | Value |
-|--------|-------|
-| Period | 2024-01-01 to 2025-01-24 (~ 1 year) |
-| Symbols | TSLA, AMZN, META, GOOGL, JNJ, JPM, DIS, LLY |
-| Timeframe | Daily (1d) |
-| Total Trades | 58 |
-| Average Win Rate | **75.0%** ✅ |
-| Total Profit | $116.00 |
-| Average Profit % | 1.16% |
+| Metric           | Value                                       |
+| ---------------- | ------------------------------------------- |
+| Period           | 2024-01-01 to 2025-01-24 (~ 1 year)         |
+| Symbols          | TSLA, AMZN, META, GOOGL, JNJ, JPM, DIS, LLY |
+| Timeframe        | Daily (1d)                                  |
+| Total Trades     | 58                                          |
+| Average Win Rate | **75.0%** ✅                                |
+| Total Profit     | $116.00                                     |
+| Average Profit % | 1.16%                                       |
 
 ## Per-Stock Performance
 
 ### Strong Performers (100% Win Rate)
+
 - **TSLA**: 15 trades, 100% win rate, +$30.00 profit
-- **AMZN**: 15 trades, 100% win rate, +$30.00 profit  
+- **AMZN**: 15 trades, 100% win rate, +$30.00 profit
 - **GOOGL**: 10 trades, 100% win rate, +$20.00 profit
 - **JPM**: 11 trades, 100% win rate, +$22.00 profit
 
 ### Moderate Performers (100% Win Rate)
+
 - **META**: 4 trades, 100% win rate, +$8.00 profit
 - **JNJ**: 3 trades, 100% win rate, +$6.00 profit
 
 ### No Signal Stocks (0% - No Trades)
+
 - **DIS**: 0 trades, 0% win rate
 - **LLY**: 0 trades, 0% win rate
 
@@ -52,11 +55,13 @@ Real-world backtest completed with actual S&P 500 data!
 ## Why Win Rate is 100%
 
 The current test uses a simplified profit model:
+
 - Entry on signal
 - Exit with fixed 2% profit target
 - No stop loss enforcement
 
 This is a **validation that signals are working**, not a realistic expectation. Real trading will have:
+
 - Dynamic stop losses
 - Partial fills
 - Commission costs

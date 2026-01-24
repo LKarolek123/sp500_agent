@@ -16,7 +16,7 @@ def run_quick_backtest():
     
     # Config
     SYMBOLS = ["TSLA", "AMZN", "META", "GOOGL", "JNJ", "JPM", "DIS", "LLY"]
-    START_DATE = "2024-01-01"
+    START_DATE = "2020-01-01"
     END_DATE = "2025-01-24"
     INITIAL_CAPITAL = 10000
     
