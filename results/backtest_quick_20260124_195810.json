@@ -1,0 +1,29 @@
+{
+  "TSLA": {
+    "trades": 15,
+    "winning": 15,
+    "losing": 0,
+    "win_rate": 100.0,
+    "profit": 30.0,
+    "profit_pct": 0.3,
+    "final_equity": 10030.0
+  },
+  "AMZN": {
+    "trades": 15,
+    "winning": 15,
+    "losing": 0,
+    "win_rate": 100.0,
+    "profit": 30.0,
+    "profit_pct": 0.3,
+    "final_equity": 10030.0
+  },
+  "META": {
+    "trades": 4,
+    "winning": 4,
+    "losing": 0,
+    "win_rate": 100.0,
+    "profit": 8.0,
+    "profit_pct": 0.08,
+    "final_equity": 10008.0
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "TSLA": {
+    "trades": 15,
+    "winning": 15,
+    "losing": 0,
+    "win_rate": 100.0,
+    "profit": 30.0,
+    "profit_pct": 0.3,
+    "final_equity": 10030.0
+  },
+  "AMZN": {
+    "trades": 15,
+    "winning": 15,
+    "losing": 0,
+    "win_rate": 100.0,
+    "profit": 30.0,
+    "profit_pct": 0.3,
+    "final_equity": 10030.0
+  },
+  "META": {
+    "trades": 4,
+    "winning": 4,
+    "losing": 0,
+    "win_rate": 100.0,
+    "profit": 8.0,
+    "profit_pct": 0.08,
+    "final_equity": 10008.0
+  },
+  "GOOGL": {
+    "trades": 10,
+    "winning": 10,
+    "losing": 0,
+    "win_rate": 100.0,
+    "profit": 20.0,
+    "profit_pct": 0.2,
+    "final_equity": 10020.0
+  },
+  "JNJ": {
+    "trades": 3,
+    "winning": 3,
+    "losing": 0,
+    "win_rate": 100.0,
+    "profit": 6.0,
+    "profit_pct": 0.06,
+    "final_equity": 10006.0
+  },
+  "JPM": {
+    "trades": 11,
+    "winning": 11,
+    "losing": 0,
+    "win_rate": 100.0,
+    "profit": 22.0,
+    "profit_pct": 0.22,
+    "final_equity": 10022.0
+  },
+  "DIS": {
+    "trades": 0,
+    "winning": 0,
+    "losing": 0,
+    "win_rate": 0,
+    "profit": 0,
+    "profit_pct": 0.0,
+    "final_equity": 10000
+  },
+  "LLY": {
+    "trades": 0,
+    "winning": 0,
+    "losing": 0,
+    "win_rate": 0,
+    "profit": 0,
+    "profit_pct": 0.0,
+    "final_equity": 10000
+  }
+}

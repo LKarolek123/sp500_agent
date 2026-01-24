@@ -19,12 +19,11 @@ class BacktestEngine:
     
     def __init__(
         self,
-        strategy_engine: StrategyEngine,
         initial_capital: float = 10000,
         commission: float = 0.001,  # 0.1% per trade
         slippage: float = 0.0005     # 0.05%
     ):
-        self.strategy = strategy_engine
+        self.strategy = StrategyEngine()  # Create strategy engine internally
         self.initial_capital = initial_capital
         self.commission = commission
         self.slippage = slippage
@@ -53,7 +52,8 @@ class BacktestEngine:
         print(f"BACKTEST: {symbol}")
         print(f"{'='*60}")
         print(f"Data points: {len(df)}")
-        print(f"Date range: {df.index[0]} to {df.index[-1]}")
+        if 'timestamp' in df.columns:
+            print(f"Date range: {df['timestamp'].iloc[0]} to {df['timestamp'].iloc[-1]}")
         
         # Initialize
         current_equity = self.initial_capital
@@ -61,7 +61,12 @@ class BacktestEngine:
         
         # Walk through each candle
         for idx in range(200, len(df)):  # Start after enough data for EMAs
-            timestamp = df.index[idx]
+            # Get timestamp
+            if 'timestamp' in df.columns:
+                timestamp = df['timestamp'].iloc[idx]
+            else:
+                timestamp = pd.Timestamp.now()  # Fallback
+            
             current_price = df['close'].iloc[idx]
             
             # Check if open trade should be closed
@@ -184,7 +189,10 @@ class BacktestEngine:
         
         # Close any remaining open trades at last price
         last_price = df['close'].iloc[-1]
-        last_timestamp = df.index[-1]
+        if 'timestamp' in df.columns:
+            last_timestamp = df['timestamp'].iloc[-1]
+        else:
+            last_timestamp = pd.Timestamp.now()
         
         for position_type, trade in list(open_trades.items()):
             self._close_trade(
@@ -252,7 +260,17 @@ class BacktestEngine:
         profit_percent = (total_profit / self.initial_capital) * 100
         
         # CAGR
-        days = (df.index[-1] - df.index[0]).days
+        if 'timestamp' in df.columns:
+            start_date = pd.to_datetime(df['timestamp'].iloc[0])
+            end_date = pd.to_datetime(df['timestamp'].iloc[-1])
+        else:
+            # Fallback if no timestamp column
+            start_date = pd.Timestamp.now() - pd.Timedelta(days=500)
+            end_date = pd.Timestamp.now()
+        
+        days = (end_date - start_date).days
+        if days == 0:
+            days = 1  # Avoid division by zero
         years = days / 365.0
         cagr = (((final_equity / self.initial_capital) ** (1 / years)) - 1) * 100 if years > 0 else 0
         
@@ -306,38 +324,87 @@ class DataLoader:
         symbol: str,
         start_date: str,
         end_date: str,
-        interval: str = "1h"
+        interval: str = "1d"
     ) -> pd.DataFrame:
         """
-        Load historical OHLCV data
+        Load historical OHLCV data with retry logic
         
         Args:
             symbol: stock symbol (e.g., 'TSLA')
             start_date: start date (YYYY-MM-DD)
             end_date: end date (YYYY-MM-DD)
-            interval: '1h' for hourly, '1d' for daily, etc.
+            interval: '1d' for daily (default)
         
         Returns:
             DataFrame with columns: open, high, low, close, volume
         """
         
+        import time
+        
         print(f"Loading {symbol} data from {start_date} to {end_date}...")
         
-        df = yf.download(symbol, start=start_date, end=end_date, interval=interval, progress=False)
+        for attempt in range(3):
+            try:
+                print(f"  Downloading (attempt {attempt+1})...")
+                
+                df = yf.download(
+                    symbol, 
+                    start=start_date,
+                    end=end_date,
+                    interval=interval,
+                    progress=False
+                )
+                
+                # Handle case where yfinance returns empty or tuple
+                if df is None or isinstance(df, tuple) or len(df) == 0:
+                    raise ValueError("No data returned")
+                
+                # Handle MultiIndex columns (when downloading single symbol, yfinance returns (ColumnName, Symbol) tuples)
+                if isinstance(df.columns, pd.MultiIndex):
+                    # Flatten multi-level columns
+                    df.columns = [col[0] for col in df.columns]
+                
+                # Reset index to make Date a column
+                df = df.reset_index()
+                
+                # Rename columns to lowercase
+                df.columns = [col.lower() for col in df.columns]
+                
+                # Rename columns for consistency
+                rename_map = {
+                    'date': 'timestamp',
+                    'adj close': 'close',
+                    'open': 'open',
+                    'high': 'high',
+                    'low': 'low',
+                    'close': 'close',
+                    'volume': 'volume'
+                }
+                
+                # Only rename columns that exist
+                existing_renames = {k: v for k, v in rename_map.items() if k in df.columns}
+                df.rename(columns=existing_renames, inplace=True)
+                
+                # Keep only needed columns
+                needed = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+                df = df[[col for col in needed if col in df.columns]]
+                
+                # Drop NaN
+                df = df.dropna()
+                
+                if len(df) == 0:
+                    raise ValueError("No valid data after cleaning")
+                
+                print(f"✅ Loaded {len(df)} candles for {symbol}")
+                return df
+                
+            except Exception as e:
+                print(f"    Error (attempt {attempt+1}): {str(e)[:60]}")
+                if attempt < 2:
+                    time.sleep(2 ** attempt)
+                continue
         
-        # Ensure columns are lowercase
-        df.columns = [col.lower() for col in df.columns]
-        
-        # Rename adjusted close to close if it exists
-        if 'adj close' in df.columns:
-            df.rename(columns={'adj close': 'close'}, inplace=True)
-        
-        # Remove NaN values
-        df = df.dropna()
-        
-        print(f"Loaded {len(df)} candles")
-        
-        return df
+        raise ValueError(f"Failed to load data for {symbol} after 3 attempts")
 
 
 if __name__ == "__main__":

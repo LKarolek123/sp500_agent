@@ -197,7 +197,7 @@ def main():
     SYMBOLS = ["TSLA", "AMZN", "META", "GOOGL", "JNJ", "JPM", "DIS", "LLY"]
     START_DATE = "2024-01-01"
     END_DATE = "2025-12-31"
-    TIMEFRAME = "1h"  # hourly
+    TIMEFRAME = "1d"  # daily (hourly not available for 2024)
     
     # Run backtest
     backtester = MultiStockBacktester()
