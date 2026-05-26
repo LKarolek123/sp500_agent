@@ -1,0 +1,20 @@
+{
+  "TSLA": {
+    "trades": 40,
+    "winning": 4,
+    "losing": 36,
+    "win_rate": 10.0,
+    "profit": 24932.39,
+    "profit_pct": 249.32,
+    "final_equity": 34932.39
+  },
+  "AMZN": {
+    "trades": 33,
+    "winning": 2,
+    "losing": 31,
+    "win_rate": 6.06,
+    "profit": 10451.89,
+    "profit_pct": 104.52,
+    "final_equity": 20451.89
+  }
+}
