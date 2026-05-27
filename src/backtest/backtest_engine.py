@@ -395,7 +395,7 @@ class DataLoader:
                 if len(df) == 0:
                     raise ValueError("No valid data after cleaning")
                 
-                print(f"✅ Loaded {len(df)} candles for {symbol}")
+                print(f"Loaded {len(df)} candles for {symbol}")
                 return df
                 
             except Exception as e:

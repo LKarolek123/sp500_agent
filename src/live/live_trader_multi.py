@@ -53,7 +53,7 @@ class MultiSymbolTrader:
         slow_ma: int = 100,
         tp_atr_mult: float = 5.0,
         sl_atr_mult: float = 1.75,
-        risk_per_trade: float = 0.008,
+        risk_per_trade: float = 0.01,
         check_interval: int = 60,
         use_indicators: bool = False,
     ):
@@ -162,38 +162,7 @@ class MultiSymbolTrader:
                     else:
                         print(f"  ❌ Failed to close position for {symbol} on reverse signal")
 
-        # Apply conditional time-stop rules
-        now_ts = datetime.now()
-        for symbol, meta in list(self.open_entries.items()):
-            entry_time = meta.get("entry_time")
-            entry_price = meta.get("entry_price")
-            side = meta.get("side", "buy")
-            if isinstance(entry_time, str):
-                try:
-                    entry_time = datetime.fromisoformat(entry_time)
-                except Exception:
-                    entry_time = None
-            price_now = self.price_history[symbol][-1]["price"] if self.price_history[symbol] else None
-            if entry_time and price_now:
-                days_open = (now_ts - entry_time).days
-                pnl_pct = (price_now - entry_price) / entry_price * 100 if side == "buy" else (entry_price - price_now) / entry_price * 100
-                # If position is losing for 3+ days
-                if days_open >= 3 and pnl_pct <= 0:
-                    print(f"  ⏳ Time-stop: {symbol} losing {pnl_pct:.2f}% for {days_open} days -> closing")
-                    closed = self.alpaca.close_position(symbol)
-                    if closed:
-                        self.open_entries.pop(symbol, None)
-                    else:
-                        print(f"  ❌ Failed to close position for {symbol} on loss time-stop")
-                # If after 7+ days profit is below 2%
-                elif days_open >= 7 and pnl_pct < 2.0:
-                    print(f"  ⏳ Time-stop: {symbol} <2% after {days_open} days -> closing")
-                    closed = self.alpaca.close_position(symbol)
-                    if closed:
-                        self.open_entries.pop(symbol, None)
-                    else:
-                        print(f"  ❌ Failed to close position for {symbol} on flat time-stop")
-        # Persist any changes
+        # Time-stop logic disabled: keep positions until TP/SL or explicit reversal/close
         self._save_entries()
         
         # Filter: only symbols with strong signal and enough history
@@ -323,30 +292,20 @@ class MultiSymbolTrader:
         if pd.isna(atr) or atr <= 0:
             atr = price * 0.02
 
-        # Position sizing with score-adjusted risk
+        # Position sizing (fixed risk per trade)
         acc = self.alpaca.get_account()
         if not acc:
             return
         equity = float(acc.get("equity", 0))
-        
-        # Adjust risk based on score
-        if score < 40:
-            print(f"  ⚠️ {symbol} score {score} < 40, skipping")
-            return
-        elif score < 60:
-            risk_pct = 0.0075  # 0.75% micro
-        elif score < 80:
-            risk_pct = 0.015  # 1.5% normal
-        else:
-            risk_pct = 0.0225  # 2.25% aggressive
-        
+
+        risk_pct = float(self.risk_per_trade)
         risk_dollars = equity * risk_pct
-        risk_dollars = equity * self.risk_per_trade
         stop_distance = atr * self.sl_atr_mult
         qty = math.floor(risk_dollars / stop_distance)
         qty = max(1, qty)
 
         est_cost = price * qty
+        buying_power = float(acc.get("buying_power", acc.get("cash", equity)))
         if est_cost > buying_power * 0.98:
             print(f"  ⚠️ Insufficient buying power for {symbol}: need {est_cost:.2f}, have {buying_power:.2f}")
             return

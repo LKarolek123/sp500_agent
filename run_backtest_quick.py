@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
 """
 Quick working backtest for 3EMA + BX Trender - minimal viable version
+Saves detailed per-trade CSV for post-analysis.
 """
 
+import argparse
 import pandas as pd
 import numpy as np
 import json
@@ -11,18 +14,26 @@ from pathlib import Path
 from src.backtest.backtest_engine import DataLoader
 from src.strategy.strategy_engine import StrategyEngine, SignalType
 
-def run_quick_backtest():
+def run_quick_backtest(
+    symbols=None,
+    start_date: str = "2018-01-01",
+    end_date: str = "2026-05-26",
+    initial_capital: float = 10000,
+    risk_pct: float = 0.015
+):
     """Run a quick backtest"""
     
-    # Config
-    SYMBOLS = ["TSLA", "AMZN", "META", "GOOGL", "JNJ", "JPM", "DIS", "LLY"]
-    START_DATE = "2022-01-01"
-    END_DATE = "2025-01-24"
-    INITIAL_CAPITAL = 10000
+    SYMBOLS = symbols or ["TSLA", "AMZN", "META", "GOOGL", "JNJ", "JPM", "DIS", "LLY"]
+    START_DATE = start_date
+    END_DATE = end_date
+    INITIAL_CAPITAL = initial_capital
+    RISK_PERCENT = risk_pct
     
     print(f"\nQUICK BACKTEST")
     print(f"Period: {START_DATE} to {END_DATE}")
-    print(f"Symbols: {', '.join(SYMBOLS)}\n")
+    print(f"Symbols: {', '.join(SYMBOLS)}")
+    print(f"Initial Capital: ${INITIAL_CAPITAL:.2f}")
+    print(f"Risk per trade: {RISK_PERCENT*100:.2f}%\n")
     
     loader = DataLoader()
     results = {}
@@ -38,7 +49,7 @@ def run_quick_backtest():
             df = loader.load_data(symbol, START_DATE, END_DATE, interval="1d")
             
             if len(df) < 50:
-                print(f"⚠️ Not enough data ({len(df)} candles)\n")
+                print(f"Not enough data ({len(df)} candles)\n")
                 continue
             
             # Initialize
@@ -64,11 +75,20 @@ def run_quick_backtest():
                         pnl = (exit_price - entry_price) * open_trade['shares']  # Real position size
                         
                         trades.append({
+                            "symbol": symbol,
                             "entry": entry_price,
                             "exit": exit_price,
+                            "shares": open_trade['shares'],
+                            "entry_date": open_trade['entry_date'],
+                            "exit_date": str(df['timestamp'].iloc[idx]),
+                            "entry_value": round(entry_price * open_trade['shares'], 2),
+                            "percent_of_equity_at_entry": round((entry_price * open_trade['shares']) / INITIAL_CAPITAL * 100, 4),
+                            "risk_amount_usd": round(open_trade['shares'] * (open_trade['entry'] - open_trade['stop_loss']), 2),
+                            "risk_pct_of_equity": round((open_trade['shares'] * (open_trade['entry'] - open_trade['stop_loss'])) / INITIAL_CAPITAL * 100, 6),
                             "pnl": pnl,
                             "pnl_percent": (pnl / INITIAL_CAPITAL) * 100,
-                            "exit_reason": "STOP_LOSS"
+                            "exit_reason": "STOP_LOSS",
+                            "entry_time_idx": int(open_trade['entry_idx']),
                         })
                         
                         equity += pnl
@@ -90,11 +110,20 @@ def run_quick_backtest():
                         pnl = (exit_price - entry_price) * open_trade['shares']  # Real position size
                         
                         trades.append({
+                            "symbol": symbol,
                             "entry": entry_price,
                             "exit": exit_price,
+                            "shares": open_trade['shares'],
+                            "entry_date": open_trade['entry_date'],
+                            "exit_date": str(df['timestamp'].iloc[idx]),
+                            "entry_value": round(entry_price * open_trade['shares'], 2),
+                            "percent_of_equity_at_entry": round((entry_price * open_trade['shares']) / INITIAL_CAPITAL * 100, 4),
+                            "risk_amount_usd": round(open_trade['shares'] * (open_trade['entry'] - open_trade['stop_loss']), 2),
+                            "risk_pct_of_equity": round((open_trade['shares'] * (open_trade['entry'] - open_trade['stop_loss'])) / INITIAL_CAPITAL * 100, 6),
                             "pnl": pnl,
                             "pnl_percent": (pnl / INITIAL_CAPITAL) * 100,
-                            "exit_reason": "TAKE_PROFIT"
+                            "exit_reason": "TAKE_PROFIT_OR_OPPOSITE_SIGNAL",
+                            "entry_time_idx": int(open_trade['entry_idx']),
                         })
                         
                         equity += pnl
@@ -112,14 +141,14 @@ def run_quick_backtest():
                     signal = strategy.generate_signal(df, idx, equity)
                     
                     if signal:
-                        # Enter trade with REAL position sizing (1.5% risk)
+                        # Enter trade with REAL position sizing using the configured risk percent
                         entry_price = current_price
                         stop_loss = entry_price * 0.99  # 1% below entry
                         
-                        # Calculate position size: risk $150 (1.5% of $10k)
+                        # Calculate position size using the active equity and chosen risk percent
                         risk_per_share = entry_price - stop_loss
                         if risk_per_share > 0:
-                            shares = int((equity * 0.015) / risk_per_share)  # 1.5% risk
+                            shares = int((equity * RISK_PERCENT) / risk_per_share)
                             shares = max(1, min(shares, int(equity / entry_price)))  # At least 1, max affordable
                         else:
                             shares = 1
@@ -128,9 +157,11 @@ def run_quick_backtest():
                             'entry': entry_price,
                             'stop_loss': stop_loss,
                             'direction': signal.signal_type,
-                            'shares': shares
+                            'shares': shares,
+                            'entry_idx': idx,
+                            'entry_date': str(df['timestamp'].iloc[idx])
                         }
-                        print(f"  [{idx}] ENTRY: {entry_price:.2f} | SL: {stop_loss:.2f}")
+                        print(f"  [{idx}] ENTRY: {entry_price:.2f} | SL: {stop_loss:.2f} | Shares: {shares}")
             
             # Close any remaining open trade at last price
             if open_trade:
@@ -138,11 +169,20 @@ def run_quick_backtest():
                 pnl = (exit_price - open_trade['entry']) * open_trade['shares']  # Real position size
                 
                 trades.append({
+                    "symbol": symbol,
                     "entry": open_trade['entry'],
                     "exit": exit_price,
+                    "shares": open_trade['shares'],
+                    "entry_date": open_trade['entry_date'],
+                    "exit_date": str(df['timestamp'].iloc[-1]),
+                    "entry_value": round(open_trade['entry'] * open_trade['shares'], 2),
+                    "percent_of_equity_at_entry": round((open_trade['entry'] * open_trade['shares']) / INITIAL_CAPITAL * 100, 4),
+                    "risk_amount_usd": round(open_trade['shares'] * (open_trade['entry'] - open_trade['stop_loss']), 2),
+                    "risk_pct_of_equity": round((open_trade['shares'] * (open_trade['entry'] - open_trade['stop_loss'])) / INITIAL_CAPITAL * 100, 6),
                     "pnl": pnl,
                     "pnl_percent": (pnl / INITIAL_CAPITAL) * 100,
-                    "exit_reason": "BACKTEST_END"
+                    "exit_reason": "BACKTEST_END",
+                    "entry_time_idx": int(open_trade['entry_idx']),
                 })
                 
                 equity += pnl
@@ -175,7 +215,7 @@ def run_quick_backtest():
             all_trades.extend(trades)
             
         except Exception as e:
-            print(f"❌ Error: {str(e)}\n")
+            print("Error:", repr(e))
     
     # Save results
     output_file = Path("results") / f"backtest_quick_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
@@ -184,7 +224,20 @@ def run_quick_backtest():
     with open(output_file, 'w') as f:
         json.dump(results, f, indent=2, default=str)
     
-    print(f"\n✅ Results saved to {output_file}")
+    # Save detailed trades CSV
+    trades_df = None
+    try:
+        import pandas as _pd
+        trades_df = _pd.DataFrame(all_trades)
+    except Exception:
+        trades_df = None
+
+    if trades_df is not None and len(trades_df) > 0:
+        csv_out = Path("results") / f"backtest_quick_trades_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        trades_df.to_csv(csv_out, index=False)
+        print(f"Detailed trades saved to {csv_out}")
+    
+    print(f"\nResults saved to {output_file}")
     
     # Print summary
     if results:
@@ -195,4 +248,18 @@ def run_quick_backtest():
         print(f"Avg Win Rate: {avg_win_rate:.1f}%")
 
 if __name__ == "__main__":
-    run_quick_backtest()
+    parser = argparse.ArgumentParser(description="Quick backtest runner")
+    parser.add_argument("--symbols", nargs="+", default=None, help="Symbols to test")
+    parser.add_argument("--start", default="2018-01-01", help="Start date YYYY-MM-DD")
+    parser.add_argument("--end", default="2026-05-26", help="End date YYYY-MM-DD")
+    parser.add_argument("--capital", type=float, default=10000, help="Initial capital")
+    parser.add_argument("--risk", type=float, default=0.015, help="Risk percent per trade")
+    args = parser.parse_args()
+
+    run_quick_backtest(
+        symbols=args.symbols,
+        start_date=args.start,
+        end_date=args.end,
+        initial_capital=args.capital,
+        risk_pct=args.risk,
+    )
